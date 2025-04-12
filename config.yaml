@@ -1,0 +1,121 @@
+#------------------------------------------------------
+# Configuration file for the Proxy Server
+# This file defines multiple sources, pipelines, and destinations for the proxy server.
+# Each source listens on a specific protocol (TCP, UDP, AWS S3, GCP, Azure Blob, Splunk HEC),
+# applies a pipeline of transformations, and forwards the processed data to one or more destinations.
+#------------------------------------------------------
+
+sources:
+  #------------------------------------------------------
+  # Source 1: Syslog (UDP)
+  #------------------------------------------------------
+  - name: syslog_udp_source
+    enabled: true       # Enable or disable this source
+    protocol: udp       # Protocol: udp
+    listen_ip: 0.0.0.0  # IP address to listen on
+    listen_port: 514    # Standard Syslog UDP port
+    pipeline:           # Pipeline transformations to apply
+      - type: regex_replace
+        field: syslog_message
+        pattern: "\\bERROR\\b"  # Regex pattern to match
+        replacement: "[ALERT]"  # Replacement string
+    destinations:       # List of destinations to forward data to
+      - ip: 127.0.0.1
+        port: 9201      # Primary destination
+  # End of Source 1 Configuration
+  #------------------------------------------------------
+
+  #------------------------------------------------------
+  # Source 2: Syslog (TCP)
+  #------------------------------------------------------
+  - name: syslog_tcp_source
+    enabled: true       # Enable or disable this source
+    protocol: tcp       # Protocol: tcp
+    listen_ip: 0.0.0.0  # IP address to listen on
+    listen_port: 514    # Standard Syslog TCP port
+    pipeline:           # Pipeline transformations to apply
+      - type: regex_replace
+        field: syslog_message
+        pattern: "\\bCRITICAL\\b"  # Regex pattern to match
+        replacement: "[SEVERE]"    # Replacement string
+    destinations:       # List of destinations to forward data to
+      - ip: 127.0.0.1
+        port: 9202      # Primary destination
+  # End of Source 2 Configuration
+  #------------------------------------------------------
+
+  #------------------------------------------------------
+  # Source 3: AWS S3
+  #------------------------------------------------------
+  - name: s3_source
+    enabled: false       # Enable or disable this source
+    protocol: s3        # Protocol: s3
+    bucket_name: my-source-bucket  # Name of the S3 bucket to fetch data from
+    region: us-east-1   # AWS region of the bucket
+    polling_interval: 60  # Time interval (in seconds) to poll the bucket for new files
+    pipeline:           # Pipeline transformations to apply
+      - type: regex_replace
+        field: file_content
+        pattern: "\\bconfidential\\b"  # Regex pattern to match
+        replacement: "[REDACTED]"      # Replacement string
+    destinations:       # List of destinations to forward data to
+      - bucket_name: my-destination-bucket     # S3 destination bucket
+        region: us-east-1
+  # End of Source 3 Configuration
+  #------------------------------------------------------
+
+  #------------------------------------------------------
+  # Source 4: Google Cloud Storage (GCP)
+  #------------------------------------------------------
+  - name: gcp_source
+    enabled: false      # Enable or disable this source
+    protocol: gcp       # Protocol: gcp
+    bucket_name: my-gcp-source-bucket  # Name of the GCP bucket to fetch data from
+    polling_interval: 60  # Time interval (in seconds) to poll the bucket for new files
+    pipeline:           # Pipeline transformations to apply
+      - type: regex_replace
+        field: file_content
+        pattern: "\\bconfidential\\b"  # Regex pattern to match
+        replacement: "[REDACTED]"      # Replacement string
+    destinations:       # List of destinations to forward data to
+      - bucket_name: my-gcp-destination-bucket  # GCP destination bucket
+  # End of Source 4 Configuration
+  #------------------------------------------------------
+
+  #------------------------------------------------------
+  # Source 5: Azure Blob Storage
+  #------------------------------------------------------
+  - name: azure_blob_source
+    enabled: false       # Enable or disable this source
+    protocol: azure_blob  # Protocol: azure_blob
+    container_name: my-container  # Name of the Azure Blob container
+    polling_interval: 60  # Time interval (in seconds) to poll the container for new files
+    pipeline:           # Pipeline transformations to apply
+      - type: regex_replace
+        field: blob_content
+        pattern: "\\bconfidential\\b"  # Regex pattern to match
+        replacement: "[REDACTED]"      # Replacement string
+    destinations:       # List of destinations to forward data to
+      - container_name: my-destination-container  # Azure Blob destination container
+  # End of Source 5 Configuration
+  #------------------------------------------------------
+
+  #------------------------------------------------------
+  # Source 6: Splunk HEC
+  #------------------------------------------------------
+  - name: splunk_hec_source
+    enabled: false       # Enable or disable this source
+    protocol: splunk_hec  # Protocol: splunk_hec
+    endpoint: /services/collector  # Splunk HEC endpoint
+    token: YOUR_SPLUNK_HEC_TOKEN  # Splunk HEC authentication token
+    pipeline:           # Pipeline transformations to apply
+      - type: regex_replace
+        field: event
+        pattern: "\\bERROR\\b"  # Regex pattern to match
+        replacement: "[ALERT]"  # Replacement string
+    destinations:       # List of destinations to forward data to
+      - url: http://splunk-server:8088/services/collector  # Splunk HEC destination
+        token: YOUR_SPLUNK_HEC_DEST_TOKEN
+  # End of Source 6 Configuration
+  #------------------------------------------------------
+
