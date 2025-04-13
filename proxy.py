@@ -21,6 +21,9 @@ from google.cloud import storage
 
 from azure.storage.blob import BlobServiceClient  # Azure Blob
 import requests  # Splunk HEC
+from flask import Flask, request, jsonify, render_template_string
+
+from web_interface import start_web_interface
 
 CONFIG_FILE = 'config.yaml'
 CACHE_DIR = 'cache'
@@ -54,6 +57,131 @@ def write_to_cache(data, tag="unknown"):
     except Exception as e:
         print(f"[!] Cache error: {e}")
 # End of write_to_cache()
+#------------------------------------------------------
+#------------------------------------------------------
+def handle_splunk_hec_source(source_cfg):
+    """
+    Handles incoming data from a Splunk HEC endpoint.
+    """
+    endpoint = source_cfg['endpoint']
+    token = source_cfg['token']
+    pipeline_steps = source_cfg.get('pipeline', [])
+    destinations = source_cfg.get('destinations', [])
+
+    from flask import Flask, request, jsonify
+    app = Flask(source_cfg['name'])
+
+    @app.route(endpoint, methods=['POST'])
+    def splunk_hec_handler():
+        try:
+            raw_data = request.get_json()
+            print(f"[+] Received data from Splunk HEC: {raw_data}")
+
+            # Apply pipeline transformations
+            transformed = pipeline.apply_pipeline(raw_data, pipeline_steps)
+            encoded = json.dumps(transformed).encode('utf-8')
+
+            # Forward to destinations
+            if not forward_to_destinations(encoded, destinations):
+                write_to_cache(encoded, tag=source_cfg['name'])
+                print(f"[!] Failed to forward data from Splunk HEC, cached locally.")
+
+            return jsonify({"status": "success"}), 200
+        except Exception as e:
+            print(f"[!] Error processing Splunk HEC data: {e}")
+            return jsonify({"status": "error", "message": str(e)}), 500
+
+    # Start the Flask app
+    app.run(host=source_cfg.get('listen_ip', '0.0.0.0'), port=source_cfg['listen_port'], threaded=True)
+# End of handle_splunk_hec_source()
+#------------------------------------------------------
+
+#------------------------------------------------------
+def handle_raw_tcp_source(source_cfg):
+    """
+    Handles incoming raw data over TCP as a source.
+    """
+    ip = source_cfg.get('listen_ip', '0.0.0.0')
+    port = source_cfg['listen_port']
+    pipeline_steps = source_cfg.get('pipeline', [])
+    destinations = source_cfg.get('destinations', [])
+
+    print(f"[*] Listening on {ip}:{port} for raw TCP data")
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind((ip, port))
+        server.listen(5)
+        while True:
+            client_sock, addr = server.accept()
+            threading.Thread(target=handle_raw_tcp_client, args=(client_sock, addr, source_cfg), daemon=True).start()
+# End of handle_raw_tcp_source()
+#------------------------------------------------------
+
+#------------------------------------------------------
+def handle_raw_tcp_client(client_sock, addr, source_cfg):
+    """
+    Handles a single raw TCP client connection.
+    """
+    client_ip, client_port = addr
+    print(f"[+] Connection from {client_ip}:{client_port} (Raw TCP)")
+
+    pipeline_steps = source_cfg.get('pipeline', [])
+    destinations = source_cfg.get('destinations', [])
+
+    try:
+        while True:
+            raw_data = client_sock.recv(4096)
+            if not raw_data:
+                break
+
+            print(f"[+] Received raw TCP data: {raw_data.decode('utf-8')}")
+
+            # Apply pipeline transformations
+            transformed = pipeline.apply_pipeline({"raw_data": raw_data.decode('utf-8')}, pipeline_steps)
+            encoded = json.dumps(transformed).encode('utf-8')
+
+            # Forward to destinations
+            if not forward_to_destinations(encoded, destinations):
+                write_to_cache(encoded, tag=source_cfg['name'])
+                print(f"[!] Failed to forward raw TCP data, cached locally.")
+    except Exception as e:
+        print(f"[!] Error handling raw TCP client: {e}")
+    finally:
+        client_sock.close()
+        print(f"[-] Disconnected from {client_ip}:{client_port}")
+# End of handle_raw_tcp_client()
+#------------------------------------------------------
+
+#------------------------------------------------------
+def handle_raw_udp_source(source_cfg):
+    """
+    Handles incoming raw data over UDP as a source.
+    """
+    ip = source_cfg.get('listen_ip', '0.0.0.0')
+    port = source_cfg['listen_port']
+    pipeline_steps = source_cfg.get('pipeline', [])
+    destinations = source_cfg.get('destinations', [])
+
+    print(f"[*] Listening on {ip}:{port} for raw UDP data")
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server:
+        server.bind((ip, port))
+        while True:
+            try:
+                raw_data, addr = server.recvfrom(4096)
+                client_ip, client_port = addr
+                print(f"[+] Received raw UDP data from {client_ip}:{client_port}: {raw_data.decode('utf-8')}")
+
+                # Apply pipeline transformations
+                transformed = pipeline.apply_pipeline({"raw_data": raw_data.decode('utf-8')}, pipeline_steps)
+                encoded = json.dumps(transformed).encode('utf-8')
+
+                # Forward to destinations
+                if not forward_to_destinations(encoded, destinations):
+                    write_to_cache(encoded, tag=source_cfg['name'])
+                    print(f"[!] Failed to forward raw UDP data, cached locally.")
+            except Exception as e:
+                print(f"[!] Error handling raw UDP data: {e}")
+# End of handle_raw_udp_source()
 #------------------------------------------------------
 
 #------------------------------------------------------
@@ -392,131 +520,6 @@ def handle_azure_blob_source(source_cfg):
 # End of handle_azure_blob_source()
 #------------------------------------------------------
 
-#------------------------------------------------------
-def handle_splunk_hec_source(source_cfg):
-    """
-    Handles incoming data from a Splunk HEC endpoint.
-    """
-    endpoint = source_cfg['endpoint']
-    token = source_cfg['token']
-    pipeline_steps = source_cfg.get('pipeline', [])
-    destinations = source_cfg.get('destinations', [])
-
-    from flask import Flask, request, jsonify
-    app = Flask(source_cfg['name'])
-
-    @app.route(endpoint, methods=['POST'])
-    def splunk_hec_handler():
-        try:
-            raw_data = request.get_json()
-            print(f"[+] Received data from Splunk HEC: {raw_data}")
-
-            # Apply pipeline transformations
-            transformed = pipeline.apply_pipeline(raw_data, pipeline_steps)
-            encoded = json.dumps(transformed).encode('utf-8')
-
-            # Forward to destinations
-            if not forward_to_destinations(encoded, destinations):
-                write_to_cache(encoded, tag=source_cfg['name'])
-                print(f"[!] Failed to forward data from Splunk HEC, cached locally.")
-
-            return jsonify({"status": "success"}), 200
-        except Exception as e:
-            print(f"[!] Error processing Splunk HEC data: {e}")
-            return jsonify({"status": "error", "message": str(e)}), 500
-
-    # Start the Flask app
-    app.run(host=source_cfg.get('listen_ip', '0.0.0.0'), port=source_cfg['listen_port'], threaded=True)
-# End of handle_splunk_hec_source()
-#------------------------------------------------------
-
-#------------------------------------------------------
-def handle_raw_tcp_source(source_cfg):
-    """
-    Handles incoming raw data over TCP as a source.
-    """
-    ip = source_cfg.get('listen_ip', '0.0.0.0')
-    port = source_cfg['listen_port']
-    pipeline_steps = source_cfg.get('pipeline', [])
-    destinations = source_cfg.get('destinations', [])
-
-    print(f"[*] Listening on {ip}:{port} for raw TCP data")
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server.bind((ip, port))
-        server.listen(5)
-        while True:
-            client_sock, addr = server.accept()
-            threading.Thread(target=handle_raw_tcp_client, args=(client_sock, addr, source_cfg), daemon=True).start()
-# End of handle_raw_tcp_source()
-#------------------------------------------------------
-
-#------------------------------------------------------
-def handle_raw_tcp_client(client_sock, addr, source_cfg):
-    """
-    Handles a single raw TCP client connection.
-    """
-    client_ip, client_port = addr
-    print(f"[+] Connection from {client_ip}:{client_port} (Raw TCP)")
-
-    pipeline_steps = source_cfg.get('pipeline', [])
-    destinations = source_cfg.get('destinations', [])
-
-    try:
-        while True:
-            raw_data = client_sock.recv(4096)
-            if not raw_data:
-                break
-
-            print(f"[+] Received raw TCP data: {raw_data.decode('utf-8')}")
-
-            # Apply pipeline transformations
-            transformed = pipeline.apply_pipeline({"raw_data": raw_data.decode('utf-8')}, pipeline_steps)
-            encoded = json.dumps(transformed).encode('utf-8')
-
-            # Forward to destinations
-            if not forward_to_destinations(encoded, destinations):
-                write_to_cache(encoded, tag=source_cfg['name'])
-                print(f"[!] Failed to forward raw TCP data, cached locally.")
-    except Exception as e:
-        print(f"[!] Error handling raw TCP client: {e}")
-    finally:
-        client_sock.close()
-        print(f"[-] Disconnected from {client_ip}:{client_port}")
-# End of handle_raw_tcp_client()
-#------------------------------------------------------
-
-#------------------------------------------------------
-def handle_raw_udp_source(source_cfg):
-    """
-    Handles incoming raw data over UDP as a source.
-    """
-    ip = source_cfg.get('listen_ip', '0.0.0.0')
-    port = source_cfg['listen_port']
-    pipeline_steps = source_cfg.get('pipeline', [])
-    destinations = source_cfg.get('destinations', [])
-
-    print(f"[*] Listening on {ip}:{port} for raw UDP data")
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server:
-        server.bind((ip, port))
-        while True:
-            try:
-                raw_data, addr = server.recvfrom(4096)
-                client_ip, client_port = addr
-                print(f"[+] Received raw UDP data from {client_ip}:{client_port}: {raw_data.decode('utf-8')}")
-
-                # Apply pipeline transformations
-                transformed = pipeline.apply_pipeline({"raw_data": raw_data.decode('utf-8')}, pipeline_steps)
-                encoded = json.dumps(transformed).encode('utf-8')
-
-                # Forward to destinations
-                if not forward_to_destinations(encoded, destinations):
-                    write_to_cache(encoded, tag=source_cfg['name'])
-                    print(f"[!] Failed to forward raw UDP data, cached locally.")
-            except Exception as e:
-                print(f"[!] Error handling raw UDP data: {e}")
-# End of handle_raw_udp_source()
-#------------------------------------------------------
 
 def start_source_listener(source_cfg):
     """
@@ -540,9 +543,16 @@ def start_source_listener(source_cfg):
 # End of start_source_listener()
 #------------------------------------------------------
 
+# Flask app for web interface
+####### moved to web_interface.py ########
+
+# Main function
 def main():
     global CONFIG
     CONFIG = load_config()
+
+    # Start the web interface in a separate thread
+    threading.Thread(target=start_web_interface, daemon=True).start()
 
     for source in CONFIG.get("sources", []):
         # Check if the source is enabled
@@ -557,9 +567,7 @@ def main():
     print("[*] Proxy is running. Press Ctrl+C to exit.")
     while True:
         time.sleep(1)
-# End of main()
-#------------------------------------------------------
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 # End of proxy.py

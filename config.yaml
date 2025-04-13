@@ -19,9 +19,10 @@ sources:
         field: syslog_message
         pattern: "\\bERROR\\b"  # Regex pattern to match
         replacement: "[ALERT]"  # Replacement string
-    destinations:       # List of destinations to forward data to
+    destinations1:       # List of destinations to forward data to
       - ip: 127.0.0.1
         port: 9201      # Primary destination
+        protcol: udp
   # End of Source 1 Configuration
   #------------------------------------------------------
 
@@ -118,4 +119,3 @@ sources:
         token: YOUR_SPLUNK_HEC_DEST_TOKEN
   # End of Source 6 Configuration
   #------------------------------------------------------
-
