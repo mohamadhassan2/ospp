@@ -5,7 +5,7 @@
 #------------------------------------------------------
 
 import sys
-#sys.path.append('/Users/mhassan/osps/myenv/lib/python3.13/site-packages')  # Add the path to your module
+#sys.path.append('/Users/mhassan/osps/myenv/lib/python3.13/site-packages')  #When running outside the env
 
 import socket
 import threading
@@ -21,30 +21,36 @@ from google.cloud import storage
 
 from azure.storage.blob import BlobServiceClient  # Azure Blob
 import requests  # Splunk HEC
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, logging, request, jsonify, render_template_string
 
-from web_interface import start_web_interface
+from colorama import Back, Style, init, Fore
+init(autoreset=True)  # Automatically reset color after each print
+
+from utils import setup_logging, print_error_details, signal_handler
+
+#------------------  Importing my modules & Local configs -------------------
+DEFAULT_DEBUG_LEVEL = 0
 
 CONFIG_FILE = 'config.yaml'
 CACHE_DIR = 'cache'
 CONFIG = {}
 
+setup_logging()  # Set up logging configuration
 #------------------------------------------------------
 def load_config():
     try:
         with open(CONFIG_FILE, 'r') as f:
             return yaml.safe_load(f)
     except Exception as e:
-        print(f"[!] Config load error: {e}")
+        print(f"[!] Config load error: {e}", flush=True)
+        print_error_details(e)
         return {}
 # End of load_config()
 #------------------------------------------------------
-
 #------------------------------------------------------
 # Ensure the cache directory exists
 os.makedirs(CACHE_DIR, exist_ok=True)
-#------------------------------------------------------
-
+#-----------------------------------------------------
 #------------------------------------------------------
 def write_to_cache(data, tag="unknown"):
     try:
@@ -53,49 +59,46 @@ def write_to_cache(data, tag="unknown"):
         path = os.path.join(CACHE_DIR, fname)
         with open(path, 'wb') as f:
             f.write(data)
-        print(f"[+] Cached: {fname}")
+        print(f"[+] Cached: {fname}", flush=True)
     except Exception as e:
-        print(f"[!] Cache error: {e}")
+        print(f"[!] Cache error: {e}", flush=True)
+        print_error_details(e)
 # End of write_to_cache()
 #------------------------------------------------------
+
+
+#            **** SOURCES HANDLERS ****
+
 #------------------------------------------------------
-def handle_splunk_hec_source(source_cfg):
+def handle_raw_tcp_client(client_sock, addr, source_cfg):
     """
-    Handles incoming data from a Splunk HEC endpoint.
+    Handles a single raw TCP client connection.
     """
-    endpoint = source_cfg['endpoint']
-    token = source_cfg['token']
+    client_ip, client_port = addr
+    print(f"[+] Connection from {client_ip}:{client_port} (Raw TCP)", flush=True)
     pipeline_steps = source_cfg.get('pipeline', [])
     destinations = source_cfg.get('destinations', [])
-
-    from flask import Flask, request, jsonify
-    app = Flask(source_cfg['name'])
-
-    @app.route(endpoint, methods=['POST'])
-    def splunk_hec_handler():
-        try:
-            raw_data = request.get_json()
-            print(f"[+] Received data from Splunk HEC: {raw_data}")
-
+    try:
+        while True:
+            raw_data = client_sock.recv(4096)
+            if not raw_data:
+                break
+            print(f"[+] Received raw TCP data: {raw_data.decode('utf-8')}", flush=True)
             # Apply pipeline transformations
-            transformed = pipeline.apply_pipeline(raw_data, pipeline_steps)
+            transformed = pipeline.apply_pipeline({"raw_data": raw_data.decode('utf-8')}, pipeline_steps)
             encoded = json.dumps(transformed).encode('utf-8')
-
             # Forward to destinations
             if not forward_to_destinations(encoded, destinations):
                 write_to_cache(encoded, tag=source_cfg['name'])
-                print(f"[!] Failed to forward data from Splunk HEC, cached locally.")
-
-            return jsonify({"status": "success"}), 200
-        except Exception as e:
-            print(f"[!] Error processing Splunk HEC data: {e}")
-            return jsonify({"status": "error", "message": str(e)}), 500
-
-    # Start the Flask app
-    app.run(host=source_cfg.get('listen_ip', '0.0.0.0'), port=source_cfg['listen_port'], threaded=True)
-# End of handle_splunk_hec_source()
+                print(f"[!] Failed to forward raw TCP data, cached locally.", flush=True)
+    except Exception as e:
+        print(f"[!] Error handling raw TCP client: {e}", flush=True)
+        print_error_details(e)
+    finally:
+        client_sock.close()
+        print(f"[-] Disconnected from {client_ip}:{client_port}", flush=True)
+# End of handle_raw_tcp_client()
 #------------------------------------------------------
-
 #------------------------------------------------------
 def handle_raw_tcp_source(source_cfg):
     """
@@ -106,7 +109,7 @@ def handle_raw_tcp_source(source_cfg):
     pipeline_steps = source_cfg.get('pipeline', [])
     destinations = source_cfg.get('destinations', [])
 
-    print(f"[*] Listening on {ip}:{port} for raw TCP data")
+    print(f"[*] {Fore.CYAN}Listening on {ip}:{port} for raw TCP data", flush=True)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind((ip, port))
@@ -117,40 +120,6 @@ def handle_raw_tcp_source(source_cfg):
 # End of handle_raw_tcp_source()
 #------------------------------------------------------
 
-#------------------------------------------------------
-def handle_raw_tcp_client(client_sock, addr, source_cfg):
-    """
-    Handles a single raw TCP client connection.
-    """
-    client_ip, client_port = addr
-    print(f"[+] Connection from {client_ip}:{client_port} (Raw TCP)")
-
-    pipeline_steps = source_cfg.get('pipeline', [])
-    destinations = source_cfg.get('destinations', [])
-
-    try:
-        while True:
-            raw_data = client_sock.recv(4096)
-            if not raw_data:
-                break
-
-            print(f"[+] Received raw TCP data: {raw_data.decode('utf-8')}")
-
-            # Apply pipeline transformations
-            transformed = pipeline.apply_pipeline({"raw_data": raw_data.decode('utf-8')}, pipeline_steps)
-            encoded = json.dumps(transformed).encode('utf-8')
-
-            # Forward to destinations
-            if not forward_to_destinations(encoded, destinations):
-                write_to_cache(encoded, tag=source_cfg['name'])
-                print(f"[!] Failed to forward raw TCP data, cached locally.")
-    except Exception as e:
-        print(f"[!] Error handling raw TCP client: {e}")
-    finally:
-        client_sock.close()
-        print(f"[-] Disconnected from {client_ip}:{client_port}")
-# End of handle_raw_tcp_client()
-#------------------------------------------------------
 
 #------------------------------------------------------
 def handle_raw_udp_source(source_cfg):
@@ -161,29 +130,29 @@ def handle_raw_udp_source(source_cfg):
     port = source_cfg['listen_port']
     pipeline_steps = source_cfg.get('pipeline', [])
     destinations = source_cfg.get('destinations', [])
-
-    print(f"[*] Listening on {ip}:{port} for raw UDP data")
+    print(f"[*] {Fore.LIGHTCYAN_EX}Listening on {ip}:{port} for raw UDP data", flush=True)
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server:
         server.bind((ip, port))
         while True:
             try:
                 raw_data, addr = server.recvfrom(4096)
                 client_ip, client_port = addr
-                print(f"[+] Received raw UDP data from {client_ip}:{client_port}: {raw_data.decode('utf-8')}")
-
+                print(f"[+] Received raw UDP data from {client_ip}:{client_port}: {raw_data.decode('utf-8')}", flush=True)
                 # Apply pipeline transformations
                 transformed = pipeline.apply_pipeline({"raw_data": raw_data.decode('utf-8')}, pipeline_steps)
                 encoded = json.dumps(transformed).encode('utf-8')
-
                 # Forward to destinations
                 if not forward_to_destinations(encoded, destinations):
                     write_to_cache(encoded, tag=source_cfg['name'])
-                    print(f"[!] Failed to forward raw UDP data, cached locally.")
+                    print(f"[!] Failed to forward raw UDP data, cached locally.", flush=True)
             except Exception as e:
-                print(f"[!] Error handling raw UDP data: {e}")
+                print(f"[!] Error handling raw UDP data: {e}", flush=True)
+                print_error_details(e)
 # End of handle_raw_udp_source()
 #------------------------------------------------------
 
+
+#     ***** FORWARDING (DESTINATIONS) FUNCTIONS *****
 #------------------------------------------------------
 def forward_to_splunk_hec(data, url, token):
     """
@@ -199,14 +168,15 @@ def forward_to_splunk_hec(data, url, token):
             print(f"[+] Successfully sent to Splunk HEC: {url}")
             return True
         else:
-            print(f"[!] Failed to send to Splunk HEC: {url}, Status Code: {response.status_code}")
+            print(f"[!] Failed to send to Splunk HEC: {url}, Status Code: {response.status_code}", flush=True)
             return False
     except Exception as e:
         print(f"[!] Error sending to Splunk HEC: {e}")
+        print_error_details(e)
         return False
 # End of forward_to_splunk_hec()
 #------------------------------------------------------
-
+#------------------------------------------------------
 def forward_to_s3(data, bucket_name, region):
     """
     Forwards data to an AWS S3 bucket.
@@ -215,14 +185,15 @@ def forward_to_s3(data, bucket_name, region):
         s3_client = boto3.client('s3', region_name=region)
         key = f"{uuid.uuid4()}.json"
         s3_client.put_object(Bucket=bucket_name, Key=key, Body=data)
-        print(f"[+] Successfully uploaded to S3 bucket: {bucket_name}, key: {key}")
+        print(f"[+] Successfully uploaded to S3 bucket: {bucket_name}, key: {key}", flush=True)
         return True
     except Exception as e:
         print(f"[!] Failed to upload to S3 bucket {bucket_name}: {e}")
+        print_error_details(e)
         return False
 # End of forward_to_s3()
 #------------------------------------------------------
-
+#------------------------------------------------------
 def forward_to_azure_blob(data, container_name, connection_string):
     """
     Forwards data to an Azure Blob Storage container.
@@ -231,14 +202,15 @@ def forward_to_azure_blob(data, container_name, connection_string):
         blob_service_client = BlobServiceClient.from_connection_string(connection_string)
         blob_client = blob_service_client.get_blob_client(container=container_name, blob=f"{uuid.uuid4()}.json")
         blob_client.upload_blob(data)
-        print(f"[+] Successfully uploaded to Azure Blob container: {container_name}")
+        print(f"[+] Successfully uploaded to Azure Blob container: {container_name}", flush=True)
         return True
     except Exception as e:
         print(f"[!] Failed to upload to Azure Blob container {container_name}: {e}")
+        print_error_details(e)
         return False
 # End of forward_to_azure_blob()
 #------------------------------------------------------
-
+#------------------------------------------------------
 def forward_to_gcs(data, bucket_name):
     """
     Forwards data to a Google Cloud Storage bucket.
@@ -248,14 +220,15 @@ def forward_to_gcs(data, bucket_name):
         bucket = client.get_bucket(bucket_name)
         blob = bucket.blob(f"{uuid.uuid4()}.json")
         blob.upload_from_string(data)
-        print(f"[+] Successfully uploaded to GCS bucket: {bucket_name}")
+        print(f"[+] Successfully uploaded to GCS bucket: {bucket_name}", flush=True)
         return True
     except Exception as e:
         print(f"[!] Failed to upload to GCS bucket {bucket_name}: {e}")
+        print_error_details(e)
         return False
 # End of forward_to_gcs()
 #------------------------------------------------------
-
+#------------------------------------------------------
 def forward_to_tcp_udp(data, dest):
     """
     Forwards data to a raw TCP or UDP destination.
@@ -268,96 +241,88 @@ def forward_to_tcp_udp(data, dest):
         if protocol == 'tcp':
             with socket.create_connection((ip, port), timeout=2) as sock:
                 sock.sendall(data)
-                print(f"[+] Successfully sent data to TCP destination {ip}:{port}")
+                print(f"[+] Successfully sent data to TCP destination {ip}:{port}", flush=True)
         elif protocol == 'udp':
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
                 sock.sendto(data, (ip, port))
-                print(f"[+] Successfully sent data to UDP destination {ip}:{port}")
+                print(f"[+] Successfully sent data to UDP destination {ip}:{port}", flush=True)
     except Exception as e:
         print(f"[!] Failed to send data to {protocol.upper()} destination {ip}:{port} - {e}")
+        print_error_details(e)
 # End of forward_to_tcp_udp()
 #------------------------------------------------------
-
+#------------------------------------------------------
 def forward_to_destinations(data, destinations):
     """
     Forwards data to multiple destinations based on the configuration.
     """
     for dest in destinations:
-        if 'ip' in dest and 'port' in dest:
-            forward_to_tcp_udp(data, dest)
-        elif 'bucket_name' in dest:
-            if 'region' in dest:
-                forward_to_s3(data, dest['bucket_name'], dest['region'])
-            else:
-                forward_to_gcs(data, dest['bucket_name'])
-        elif 'container_name' in dest:
-            forward_to_azure_blob(data, dest['container_name'], dest.get('connection_string'))
-        elif 'url' in dest and 'token' in dest:
-            forward_to_splunk_hec(data, dest['url'], dest['token'])
+        try:
+            if 'ip' in dest and 'port' in dest:
+                protocol = dest.get('protocol', 'tcp').lower()
+                if protocol == 'syslog_udp':
+                    forward_to_syslog_udp(data, dest)
+                elif protocol == 'syslog_tcp':
+                    forward_to_syslog_tcp(data, dest)
+                else:
+                    forward_to_tcp_udp(data, dest)
+            elif 'bucket_name' in dest:
+                if 'region' in dest:
+                    forward_to_s3(data, dest['bucket_name'], dest['region'])
+                else:
+                    forward_to_gcs(data, dest['bucket_name'])
+            elif 'container_name' in dest:
+                forward_to_azure_blob(data, dest['container_name'], dest.get('connection_string'))
+            elif 'url' in dest and 'token' in dest:
+                forward_to_splunk_hec(data, dest['url'], dest['token'])
+            print(f"[+] Successfully forwarded data to destination: {dest}",flush=True)
+        except Exception as e:
+            print(f"[!] Failed to forward data to destination: {dest} - {e}")
+            print_error_details(e)
 # End of forward_to_destinations()
 #------------------------------------------------------
 
+#           *** Collectors Sources ***
 #------------------------------------------------------
-def handle_syslog_message(raw_message, source_cfg):
+def handle_splunk_hec_collector_source(source_cfg):
     """
-    Processes a raw Syslog message, applies pipeline transformations, and forwards it.
+    Handles incoming data from a Splunk HEC endpoint.
     """
+    endpoint = source_cfg['endpoint']
+    token = source_cfg['token']
     pipeline_steps = source_cfg.get('pipeline', [])
     destinations = source_cfg.get('destinations', [])
 
-    try:
-        # Syslog messages are typically plain text, so we wrap them in a JSON structure
-        data = {"syslog_message": raw_message.decode('utf-8')}
-        transformed = pipeline.apply_pipeline(data, pipeline_steps)
-        encoded = json.dumps(transformed).encode('utf-8')
+    from flask import Flask, request, jsonify
+    app = Flask(source_cfg['name'])
 
-        if not forward_to_destinations(encoded, destinations):
-            write_to_cache(encoded, tag=source_cfg['name'])
-    except Exception as e:
-        print(f"[!] Error processing Syslog message: {e}")
-# End of handle_syslog_message()
-#------------------------------------------------------
-
-#------------------------------------------------------
-def handle_udp_syslog(server_sock, source_cfg):
-    """
-    Handles incoming Syslog messages over UDP.
-    """
-    print(f"[+] {source_cfg['name']} (UDP Syslog): Listening for incoming messages")
-
-    while True:
+    @app.route(endpoint, methods=['POST'])
+    def splunk_hec_handler():
         try:
-            raw, addr = server_sock.recvfrom(4096)
-            client_ip, client_port = addr
-            print(f"[+] {source_cfg['name']} (UDP Syslog): Message received from {client_ip}:{client_port}")
-            handle_syslog_message(raw, source_cfg)
+            raw_data = request.get_json()
+            print(f"[+] Received data from Splunk HEC: {raw_data}", flush=True)
+
+            # Apply pipeline transformations
+            transformed = pipeline.apply_pipeline(raw_data, pipeline_steps)
+            encoded = json.dumps(transformed).encode('utf-8')
+
+            # Forward to destinations
+            if not forward_to_destinations(encoded, destinations):
+                write_to_cache(encoded, tag=source_cfg['name'])
+                print(f"[!] Failed to forward data from Splunk HEC, cached locally.", flush=True)
+
+            return jsonify({"status": "success"}), 200
         except Exception as e:
-            print(f"[!] UDP Syslog socket error: {e}")
-# End of handle_udp_syslog()
-#------------------------------------------------------
+            print(f"[!] Error processing Splunk HEC data: {e}", flush=True)
+            print_error_details(e)
+            return jsonify({"status": "error", "message": str(e)}), 500
 
+    # Start the Flask app
+    app.run(host=source_cfg.get('listen_ip', '0.0.0.0'), port=source_cfg['listen_port'], threaded=True)
+# End of handle_splunk_hec_collector_source()
 #------------------------------------------------------
-def handle_tcp_syslog_client(client_sock, addr, source_cfg):
-    """
-    Handles incoming Syslog messages over TCP.
-    """
-    client_ip, client_port = addr
-    print(f"[+] {source_cfg['name']} (TCP Syslog): Connection from {client_ip}:{client_port}")
-
-    try:
-        while True:
-            raw = client_sock.recv(4096)
-            if not raw:
-                break
-            handle_syslog_message(raw, source_cfg)
-    finally:
-        client_sock.close()
-        print(f"[-] Disconnected from {client_ip}:{client_port}")
-# End of handle_tcp_syslog_client()
 #------------------------------------------------------
-
-#------------------------------------------------------
-def handle_s3_source(source_cfg):
+def handle_s3_collector_source(source_cfg):
     """
     Polls an AWS S3 bucket for new files, processes them, and forwards the data.
     """
@@ -410,17 +375,16 @@ def handle_s3_source(source_cfg):
 
                 except Exception as e:
                     print(f"[!] Error processing file from S3 bucket: {bucket_name}, key: {key}, error: {e}")
-
+                    print_error_details(e)
         except Exception as e:
             print(f"[!] Error polling S3 bucket: {bucket_name}, error: {e}")
-
+            print_error_details(e)
         # Wait for the next polling interval
         time.sleep(polling_interval)
-# End of handle_s3_source()
+# End of handle_s3_collector_source()
 #------------------------------------------------------
-
 #------------------------------------------------------
-def handle_gcp_source(source_cfg):
+def handle_gcp_collector_source(source_cfg):
     """
     Polls a Google Cloud Storage bucket for new files, processes them, and forwards the data.
     """
@@ -460,16 +424,16 @@ def handle_gcp_source(source_cfg):
 
                 except Exception as e:
                     print(f"[!] Error processing blob from GCP bucket: {bucket_name}, blob: {blob.name}, error: {e}")
-
+                    print_error_details(e)
         except Exception as e:
             print(f"[!] Error polling GCP bucket: {bucket_name}, error: {e}")
-
+            print_error_details(e)
         # Wait for the next polling interval
         time.sleep(polling_interval)
-# End of handle_gcp_source()
+# End of handle_gcp_collector_source()
 #------------------------------------------------------
-
-def handle_azure_blob_source(source_cfg):
+#------------------------------------------------------
+def handle_azure_blob_collector_source(source_cfg):
     """
     Polls an Azure Blob Storage container for new files, processes them, and forwards the data.
     """
@@ -511,63 +475,191 @@ def handle_azure_blob_source(source_cfg):
 
                 except Exception as e:
                     print(f"[!] Error processing blob from Azure Blob container: {container_name}, blob: {blob.name}, error: {e}")
-
+                    print_error_details(e)
         except Exception as e:
             print(f"[!] Error polling Azure Blob container: {container_name}, error: {e}")
+            print_error_details(e)
 
         # Wait for the next polling interval
         time.sleep(polling_interval)
-# End of handle_azure_blob_source()
+# End of handle_azure_blob_collector_source()
+#------------------------------------------------------
+
+#------------------------------------------------------
+def handle_syslog_udp_source(source_cfg):
+    """
+    ** Doesn't client routine() like syslog_tcp_source() **
+    Handles incoming Syslog messages over UDP as a source.
+    Listens for Syslog messages over UDP and processes them.
+    Logs incoming messages and forwards them to destinations.
+    """
+    ip = source_cfg.get('listen_ip', '0.0.0.0')
+    port = source_cfg['listen_port']
+    pipeline_steps = source_cfg.get('pipeline', [])
+    destinations = source_cfg.get('destinations', [])
+
+    print(f"[*] {Fore.GREEN}Listening on {ip}:{port} for Syslog UDP messages", flush=True)
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server:
+        server.bind((ip, port))
+        while True:
+            try:
+                raw_data, addr = server.recvfrom(4096)
+                client_ip, client_port = addr
+                print(f"[+] Received Syslog UDP message from {client_ip}:{client_port}: {raw_data.decode('utf-8')}")
+
+                # Apply pipeline transformations
+                transformed = pipeline.apply_pipeline({"raw_data": raw_data.decode('utf-8')}, pipeline_steps)
+                encoded = json.dumps(transformed).encode('utf-8')
+
+                # Forward to destinations
+                if not forward_to_destinations(encoded, destinations):
+                    write_to_cache(encoded, tag=source_cfg['name'])
+                    print(f"[!] Failed to forward Syslog UDP message, cached locally.")
+            except Exception as e:
+                print(f"[!] Error handling Syslog UDP message: {e}")
+                print_error_details(e)
+# End of handle_syslog_udp_source()
+#------------------------------------------------------
+#------------------------------------------------------
+def handle_syslog_tcp_source(source_cfg):
+    """
+    Handles incoming Syslog messages over TCP as a source.
+    Listens for Syslog messages over TCP and spawns a thread for each client connection.
+    """
+    ip = source_cfg.get('listen_ip', '0.0.0.0')
+    port = source_cfg['listen_port']
+    pipeline_steps = source_cfg.get('pipeline', [])
+    destinations = source_cfg.get('destinations', [])
+
+    print(f"[*] {Fore.YELLOW}Listening on {ip}:{port} for Syslog TCP messages", flush=True)
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind((ip, port))
+        server.listen(5)
+        while True:
+            client_sock, addr = server.accept()
+            threading.Thread(target=handle_syslog_tcp_client, args=(client_sock, addr, source_cfg), daemon=True).start()
+# End of handle_syslog_tcp_source()
+#------------------------------------------------------
+#------------------------------------------------------
+def handle_syslog_tcp_client(client_sock, addr, source_cfg):
+    """
+    Handles a single Syslog TCP client connection.
+    Handles individual TCP client connections, processes messages, and forwards them to destinations.
+    """
+    client_ip, client_port = addr
+    print(f"[+] Connection from {client_ip}:{client_port} (Syslog TCP)", flush=True)
+    pipeline_steps = source_cfg.get('pipeline', [])
+    destinations = source_cfg.get('destinations', [])
+
+    try:
+        while True:
+            raw_data = client_sock.recv(4096)
+            if not raw_data:
+                break
+            print(f"[+] Received Syslog TCP message: {raw_data.decode('utf-8')}", flush=True)
+
+            # Apply pipeline transformations
+            transformed = pipeline.apply_pipeline({"raw_data": raw_data.decode('utf-8')}, pipeline_steps)
+            encoded = json.dumps(transformed).encode('utf-8')
+
+            # Forward to destinations
+            if not forward_to_destinations(encoded, destinations):
+                write_to_cache(encoded, tag=source_cfg['name'])
+                print(f"[!] Failed to forward Syslog TCP message, cached locally., flush=True")
+    except Exception as e:
+        print(f"[!] Error handling Syslog TCP client: {e}")
+        print_error_details(e)
+    finally:
+        client_sock.close()
+        print(f"[-] Disconnected from {client_ip}:{client_port}",flush=True)
+# End of handle_syslog_tcp_client()
 #------------------------------------------------------
 
 
-def start_source_listener(source_cfg):
+
+#------------------------------------------------------
+def start_sources_listeners(source_cfg):
     """
     Starts a listener for the specified source configuration.
     """
     protocol = source_cfg.get('protocol', 'tcp').lower()
     name = source_cfg['name']
-
+    ''''
     if protocol == 'tcp':
         threading.Thread(target=handle_raw_tcp_source, args=(source_cfg,), daemon=True).start()
     elif protocol == 'udp':
         threading.Thread(target=handle_raw_udp_source, args=(source_cfg,), daemon=True).start()
     elif protocol == 's3':
-        threading.Thread(target=handle_s3_source, args=(source_cfg,), daemon=True).start()
+        threading.Thread(target=handle_s3_collector_source, args=(source_cfg,), daemon=True).start()
     elif protocol == 'gcp':
-        threading.Thread(target=handle_gcp_source, args=(source_cfg,), daemon=True).start()
+        threading.Thread(target=handle_gcp_collector_source, args=(source_cfg,), daemon=True).start()
     elif protocol == 'azure_blob':
-        threading.Thread(target=handle_azure_blob_source, args=(source_cfg,), daemon=True).start()
+        threading.Thread(target=handle_azure_blob_collector_source, args=(source_cfg,), daemon=True).start()
     elif protocol == 'splunk_hec':
-        threading.Thread(target=handle_splunk_hec_source, args=(source_cfg,), daemon=True).start()
-# End of start_source_listener()
+        threading.Thread(target=handle_splunk_hec_collector_source, args=(source_cfg,), daemon=True).start()
+    '''
+    if name == 'syslog_udp_source':
+        threading.Thread(target=handle_syslog_udp_source, args=(source_cfg,), daemon=True).start()
+    elif name == 'syslog_tcp_source':
+        threading.Thread(target=handle_syslog_tcp_source, args=(source_cfg,), daemon=True).start()
+
+    elif name == 'raw_tcp_source':
+        threading.Thread(target=handle_raw_tcp_source, args=(source_cfg,), daemon=True).start()
+    elif name == 'raw_udp_source':   
+        threading.Thread(target=handle_raw_udp_source, args=(source_cfg,), daemon=True).start()
+
+    elif name == 's3_collector_source':
+        threading.Thread(target=handle_s3_collector_source, args=(source_cfg,), daemon=True).start()
+    elif name == 'gcp_collector_source':
+        threading.Thread(target=handle_gcp_collector_source, args=(source_cfg,), daemon=True).start()
+    elif name == 'azure_blob_collector_source':
+        threading.Thread(target=handle_azure_blob_collector_source, args=(source_cfg,), daemon=True).start()
+    elif name == 'splunk_hec_collector_source':
+        threading.Thread(target=handle_splunk_hec_collector_source, args=(source_cfg,), daemon=True).start()
+    else:
+        print(f"[!] {Fore.RED}Unknown source name in configuration: {name}. Skipping.", flush=True)
+        return
+    
+# End of start_sources_listeners()
 #------------------------------------------------------
 
 # Flask app for web interface
 ####### moved to web_interface.py ########
+from web_interface import start_web_interface    #Placement matters
 
+
+#------------------------------------------------------
 # Main function
 def main():
     global CONFIG
     CONFIG = load_config()
-
-    # Start the web interface in a separate thread
-    threading.Thread(target=start_web_interface, daemon=True).start()
+    if not CONFIG:
+        print("[!] Failed to load configuration.", flush=True)
+        return
 
     for source in CONFIG.get("sources", []):
         # Check if the source is enabled
         if not source.get("enabled", True):
-            print(f"[-] Skipping disabled source: {source['name']}")
+            print(f"[-] {Fore.LIGHTBLACK_EX}Skipping disabled source: {source['name']}", flush=True)
             continue
 
         # Start the listener for the enabled source
-        print(f"[+] Starting listener for source: {source['name']}")
-        threading.Thread(target=start_source_listener, args=(source,), daemon=True).start()
+        print(f"[+] {Fore.LIGHTBLUE_EX}Enabled source: {source['name']}", flush=True)
+        threading.Thread(target=start_sources_listeners, args=(source,), daemon=True).start()
+        time.sleep(1)
+    # ----End of for loop-------
 
     print("[*] Proxy is running. Press Ctrl+C to exit.")
+    # Start the web interface in a separate thread
+    threading.Thread(target=start_web_interface, daemon=True).start()
     while True:
         time.sleep(1)
+# End of main()
+#------------------------------------------------------        
 
+#===================================================
 if __name__ == "__main__":
     main()
 # End of proxy.py
+#===================================================

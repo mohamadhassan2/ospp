@@ -46,9 +46,9 @@ sources:
   #------------------------------------------------------
 
   #------------------------------------------------------
-  # Source 3: AWS S3
+  # Source 3: AWS S3 collector
   #------------------------------------------------------
-  - name: s3_source
+  - name: s3_collector_source
     enabled: false       # Enable or disable this source
     protocol: s3        # Protocol: s3
     bucket_name: my-source-bucket  # Name of the S3 bucket to fetch data from
@@ -66,9 +66,9 @@ sources:
   #------------------------------------------------------
 
   #------------------------------------------------------
-  # Source 4: Google Cloud Storage (GCP)
+  # Source 4: Google Cloud Storage (GCP) collector
   #------------------------------------------------------
-  - name: gcp_source
+  - name: gcp_collector_source
     enabled: false      # Enable or disable this source
     protocol: gcp       # Protocol: gcp
     bucket_name: my-gcp-source-bucket  # Name of the GCP bucket to fetch data from
@@ -84,9 +84,9 @@ sources:
   #------------------------------------------------------
 
   #------------------------------------------------------
-  # Source 5: Azure Blob Storage
+  # Source 5: Azure Blob Storage collector
   #------------------------------------------------------
-  - name: azure_blob_source
+  - name: azure_blob_collector_source
     enabled: false       # Enable or disable this source
     protocol: azure_blob  # Protocol: azure_blob
     container_name: my-container  # Name of the Azure Blob container
@@ -102,7 +102,7 @@ sources:
   #------------------------------------------------------
 
   #------------------------------------------------------
-  # Source 6: Splunk HEC
+  # Source 6: Splunk HEC collector
   #------------------------------------------------------
   - name: splunk_hec_source
     enabled: false       # Enable or disable this source
