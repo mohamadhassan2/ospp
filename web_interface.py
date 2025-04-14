@@ -1,12 +1,18 @@
-from flask import Flask, request, jsonify
+from flask import Flask, logging, request, jsonify
 import yaml
 import os
 
 CONFIG_FILE = 'config.yaml'
+FLASK_PORT = 5050
+OSPP_DEAULT_LOG_FILE = 'ospp.log'
+
+
+from utils import setup_logging, print_error_details
 
 # Flask app for the backend API
 app = Flask(__name__)
 
+#-------------------------------------------------------------
 # --- Route to get the configuration ---
 @app.route("/api/config", methods=["GET"])
 def get_config():
@@ -21,7 +27,8 @@ def get_config():
     except Exception as e:
         return jsonify({"error": f"Error loading configuration: {e}"}), 500
 # --- End of get_config ---
-
+#-------------------------------------------------------------
+#--------------------------------------------------------------
 # --- Route to update the configuration ---
 @app.route("/api/config", methods=["POST"])
 def update_config():
@@ -37,7 +44,8 @@ def update_config():
     except Exception as e:
         return jsonify({"error": f"Error saving configuration: {e}"}), 500
 # --- End of update_config ---
-
+#-------------------------------------------------------------
+#--------------------------------------------------------------
 # --- Serve the React frontend ---
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
@@ -55,11 +63,13 @@ def serve_frontend(path):
     except Exception as e:
         return f"Error serving frontend: {e}", 500
 # --- End of serve_frontend ---
-
+#-------------------------------------------------------------
+#-------------------------------------------------------------
 # --- Start the Flask web interface ---
 def start_web_interface():
     """
     Start the Flask web interface on port 5050.
     """
-    app.run(host="0.0.0.0", port=5050, debug=True, use_reloader=False)
+    app.run(host="0.0.0.0", port=FLASK_PORT, debug=True, use_reloader=False)
 # --- End of start_web_interface ---
+#-------------------------------------------------------------

@@ -14,6 +14,7 @@ import os
 import time
 import uuid
 import traceback
+from venv import logger
 import yaml
 import pipeline
 import boto3  # AWS S3
@@ -34,6 +35,13 @@ DEFAULT_DEBUG_LEVEL = 0
 CONFIG_FILE = 'config.yaml'
 CACHE_DIR = 'cache'
 CONFIG = {}
+
+#-------------------globally hand uncaught exceptions in threads-------------------
+def handle_thread_exception(args):
+    print(f"Uncaught exception in thread {args.thread.name}: {args.exc_value}")
+#------------------------------------------------------
+threading.excepthook = handle_thread_exception
+
 
 setup_logging()  # Set up logging configuration
 #------------------------------------------------------
@@ -110,13 +118,19 @@ def handle_raw_tcp_source(source_cfg):
     destinations = source_cfg.get('destinations', [])
 
     print(f"[*] {Fore.CYAN}Listening on {ip}:{port} for raw TCP data", flush=True)
+    logger.info(f"{__doc__}:Listening on {ip}:{port} for raw TCP data")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind((ip, port))
         server.listen(5)
         while True:
-            client_sock, addr = server.accept()
-            threading.Thread(target=handle_raw_tcp_client, args=(client_sock, addr, source_cfg), daemon=True).start()
+            try:
+                client_sock, addr = server.accept()
+                threading.Thread(target=handle_raw_tcp_client, args=(client_sock, addr, source_cfg), daemon=True).start()
+            except Exception as e:
+                print(f"[!] Error handling raw TCP data: {e}", flush=True)
+                logger.error(f"Error handling raw TCP data: {e}")
+                print_error_details(e)
 # End of handle_raw_tcp_source()
 #------------------------------------------------------
 
@@ -252,6 +266,46 @@ def forward_to_tcp_udp(data, dest):
 # End of forward_to_tcp_udp()
 #------------------------------------------------------
 #------------------------------------------------------
+def forward_to_tcp_syslog_dest(data, dest):
+    """
+    Forwards data to a Syslog destination over TCP.
+    """
+    ip = dest['ip']
+    port = dest['port']
+
+    try:
+        with socket.create_connection((ip, port), timeout=2) as sock:
+            sock.sendall(data)
+            print(f"[+] Successfully sent Syslog TCP data to {ip}:{port}", flush=True)
+        return True
+    except Exception as e:
+        print(f"[!] Failed to send Syslog TCP data to {ip}:{port} - {e}", flush=True)
+        print_error_details(e)
+        return False
+# End of forward_to_tcp_syslog_dest()
+#------------------------------------------------------
+
+#------------------------------------------------------
+def forward_to_udp_syslog_dest(data, dest):
+    """
+    Forwards data to a Syslog destination over UDP.
+    """
+    ip = dest['ip']
+    port = dest['port']
+
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            sock.sendto(data, (ip, port))
+            print(f"[+] Successfully sent Syslog UDP data to {ip}:{port}", flush=True)
+        return True
+    except Exception as e:
+        print(f"[!] Failed to send Syslog UDP data to {ip}:{port} - {e}", flush=True)
+        print_error_details(e)
+        return False
+# End of forward_to_udp_syslog_dest()
+#------------------------------------------------------
+
+#------------------------------------------------------
 def forward_to_destinations(data, destinations):
     """
     Forwards data to multiple destinations based on the configuration.
@@ -261,9 +315,9 @@ def forward_to_destinations(data, destinations):
             if 'ip' in dest and 'port' in dest:
                 protocol = dest.get('protocol', 'tcp').lower()
                 if protocol == 'syslog_udp':
-                    forward_to_syslog_udp(data, dest)
+                    forward_to_udp_syslog_dest(data, dest)
                 elif protocol == 'syslog_tcp':
-                    forward_to_syslog_tcp(data, dest)
+                    forward_to_tcp_syslog_dest(data, dest)
                 else:
                     forward_to_tcp_udp(data, dest)
             elif 'bucket_name' in dest:
@@ -275,9 +329,9 @@ def forward_to_destinations(data, destinations):
                 forward_to_azure_blob(data, dest['container_name'], dest.get('connection_string'))
             elif 'url' in dest and 'token' in dest:
                 forward_to_splunk_hec(data, dest['url'], dest['token'])
-            print(f"[+] Successfully forwarded data to destination: {dest}",flush=True)
+            print(f"[+] Successfully forwarded data to destination: {dest}", flush=True)
         except Exception as e:
-            print(f"[!] Failed to forward data to destination: {dest} - {e}")
+            print(f"[!] Failed to forward data to destination: {dest} - {e}", flush=True)
             print_error_details(e)
 # End of forward_to_destinations()
 #------------------------------------------------------

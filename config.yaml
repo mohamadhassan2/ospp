@@ -6,9 +6,7 @@
 #------------------------------------------------------
 
 sources:
-  #------------------------------------------------------
-  # Source 1: Syslog (UDP)
-  #------------------------------------------------------
+  #-----------------Source 1: Syslog (UDP)--------------
   - name: syslog_udp_source
     enabled: true       # Enable or disable this source
     protocol: udp       # Protocol: udp
@@ -16,24 +14,44 @@ sources:
     listen_port: 514    # Standard Syslog UDP port
     pipeline:           # Pipeline transformations to apply
       - type: regex_replace
-        field: syslog_message
+        field: raw_data
         pattern: "\\bERROR\\b"  # Regex pattern to match
         replacement: "[ALERT]"  # Replacement string
-    destinations1:       # List of destinations to forward data to
-      - ip: 127.0.0.1
-        port: 9201      # Primary destination
-        protcol: udp
+    destinations:       # List of destinations to forward data to
+      - ip: 192.168.1.100
+        port: 514
+        protocol: syslog_udp
+      - ip: 192.168.1.101
+        port: 601
+        protocol: syslog_tcp
   # End of Source 1 Configuration
-  #------------------------------------------------------
-
-  #------------------------------------------------------
-  # Source 2: Syslog (TCP)
-  #------------------------------------------------------
+#------------------------------------------------------
+#---------------Source 2: Syslog (TCP)-----------------
   - name: syslog_tcp_source
-    enabled: true       # Enable or disable this source
+    enabled: true      # Enable or disable this source
     protocol: tcp       # Protocol: tcp
     listen_ip: 0.0.0.0  # IP address to listen on
-    listen_port: 514    # Standard Syslog TCP port
+    listen_port: 601    # Standard Syslog TCP port
+    pipeline:           # Pipeline transformations to apply
+      - type: regex_replace
+        field: raw_data
+        pattern: "\\bWARNING\\b"  # Regex pattern to match
+        replacement: "[NOTICE]"    # Replacement string
+    destinations:       # List of destinations to forward data to
+      - ip: 192.168.1.102
+        port: 514
+        protocol: syslog_udp
+      - ip: 192.168.1.103
+        port: 601
+        protocol: syslog_tcp
+# End of Source 2 Configuration
+#------------------------------------------------------
+#---------------Source 3: RAW (UDP))-----------------
+  - name: raw_udp_source
+    enabled: true      # Enable or disable this source
+    protocol: udp       # Protocol: tcp
+    listen_ip: 0.0.0.0  # IP address to listen on
+    listen_port: 1514    # Standard Syslog TCP port
     pipeline:           # Pipeline transformations to apply
       - type: regex_replace
         field: syslog_message
@@ -42,12 +60,34 @@ sources:
     destinations:       # List of destinations to forward data to
       - ip: 127.0.0.1
         port: 9202      # Primary destination
-  # End of Source 2 Configuration
-  #------------------------------------------------------
+# End of Source 3 Configuration
+#------------------------------------------------------
+#---------------Source 4: RAW (TCP)-----------------
+  - name: raw_tcp_source
+    enabled: true       # Enable or disable this source
+    protocol: tcp       # Protocol: tcp
+    listen_ip: 0.0.0.0  # IP address to listen on
+    listen_port: 5000    # Standard Syslog TCP port
+    pipeline:           # Pipeline transformations to apply
+      - type: regex_replace
+        field: raw_data
+        pattern: "\\bERROR\\b"  # Regex pattern to match
+        replacement: "[ALERT]"  # Replacement string
+    destinations:       # List of destinations to forward data to
+      - ip: 192.168.1.100
+        port: 514
+        protocol: syslog_udp
+      - ip: 192.168.1.101
+        port: 601
+        protocol: syslog_tcp
+# End of Source 4 Configuration
+#------------------------------------------------------
 
-  #------------------------------------------------------
-  # Source 3: AWS S3 collector
-  #------------------------------------------------------
+
+
+
+#               ***** Collectors *****
+  #-----------------Source 1C: AWS S3 collector------------
   - name: s3_collector_source
     enabled: false       # Enable or disable this source
     protocol: s3        # Protocol: s3
@@ -62,12 +102,9 @@ sources:
     destinations:       # List of destinations to forward data to
       - bucket_name: my-destination-bucket     # S3 destination bucket
         region: us-east-1
-  # End of Source 3 Configuration
-  #------------------------------------------------------
-
-  #------------------------------------------------------
-  # Source 4: Google Cloud Storage (GCP) collector
-  #------------------------------------------------------
+# End of Source 1c Configuration
+#------------------------------------------------------
+#----------------Source 2C: GCP collector----------------------
   - name: gcp_collector_source
     enabled: false      # Enable or disable this source
     protocol: gcp       # Protocol: gcp
@@ -80,12 +117,9 @@ sources:
         replacement: "[REDACTED]"      # Replacement string
     destinations:       # List of destinations to forward data to
       - bucket_name: my-gcp-destination-bucket  # GCP destination bucket
-  # End of Source 4 Configuration
+  # End of Source 2C Configuration
   #------------------------------------------------------
-
-  #------------------------------------------------------
-  # Source 5: Azure Blob Storage collector
-  #------------------------------------------------------
+  #-----------------Source 3C: Azure Blob Storage collector---------------
   - name: azure_blob_collector_source
     enabled: false       # Enable or disable this source
     protocol: azure_blob  # Protocol: azure_blob
@@ -98,17 +132,17 @@ sources:
         replacement: "[REDACTED]"      # Replacement string
     destinations:       # List of destinations to forward data to
       - container_name: my-destination-container  # Azure Blob destination container
-  # End of Source 5 Configuration
-  #------------------------------------------------------
-
-  #------------------------------------------------------
-  # Source 6: Splunk HEC collector
-  #------------------------------------------------------
-  - name: splunk_hec_source
-    enabled: false       # Enable or disable this source
-    protocol: splunk_hec  # Protocol: splunk_hec
+  # End of Source 3C Configuration
+  #----------------------------------------------------------------------
+  #-----------------Source 4C: Splunk HEC collector-----------------------
+  - name: splunk_hec_collector_source
+    enabled: true       # Enable or disable this source
+    protocol: tcp       # Protocol: tcp
+    listen_ip: 0.0.0.0  # IP address to listen on
+    listen_port: 8088    # Standard Syslog TCP port
+    #protocol: splunk_hec  # Protocol: splunk_hec
     endpoint: /services/collector  # Splunk HEC endpoint
-    token: YOUR_SPLUNK_HEC_TOKEN  # Splunk HEC authentication token
+    token: CF179AE4-3C99-45F5-A7CC-3284AA91CF67  # Splunk HEC authentication token
     pipeline:           # Pipeline transformations to apply
       - type: regex_replace
         field: event
@@ -117,5 +151,5 @@ sources:
     destinations:       # List of destinations to forward data to
       - url: http://splunk-server:8088/services/collector  # Splunk HEC destination
         token: YOUR_SPLUNK_HEC_DEST_TOKEN
-  # End of Source 6 Configuration
-  #------------------------------------------------------
+  # End of Source 4C Configuration
+  #-----------------------------------------------------------------------
