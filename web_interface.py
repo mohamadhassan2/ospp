@@ -12,7 +12,7 @@ from utils import setup_logging, print_error_details
 # Flask app for the backend API
 app = Flask(__name__)
 
-#-------------------------------------------------------------
+
 # --- Route to get the configuration ---
 @app.route("/api/config", methods=["GET"])
 def get_config():

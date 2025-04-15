@@ -27,7 +27,7 @@ from flask import Flask, logging, request, jsonify, render_template_string
 from colorama import Back, Style, init, Fore
 init(autoreset=True)  # Automatically reset color after each print
 
-from utils import setup_logging, print_error_details, signal_handler
+from utils import create_ip_alias, setup_logging, print_error_details, signal_handler
 
 #------------------  Importing my modules & Local configs -------------------
 DEFAULT_DEBUG_LEVEL = 0
@@ -50,8 +50,7 @@ def load_config():
         with open(CONFIG_FILE, 'r') as f:
             return yaml.safe_load(f)
     except Exception as e:
-        print(f"[!] Config load error: {e}", flush=True)
-        print_error_details(e)
+        print_error_details(f"[!] Config load error: {e}")
         return {}
 # End of load_config()
 #------------------------------------------------------
@@ -69,8 +68,7 @@ def write_to_cache(data, tag="unknown"):
             f.write(data)
         print(f"[+] Cached: {fname}", flush=True)
     except Exception as e:
-        print(f"[!] Cache error: {e}", flush=True)
-        print_error_details(e)
+        print_error_details(f"[!] Cache error: {e}")
 # End of write_to_cache()
 #------------------------------------------------------
 
@@ -86,22 +84,23 @@ def handle_raw_tcp_client(client_sock, addr, source_cfg):
     print(f"[+] Connection from {client_ip}:{client_port} (Raw TCP)", flush=True)
     pipeline_steps = source_cfg.get('pipeline', [])
     destinations = source_cfg.get('destinations', [])
+
     try:
         while True:
             raw_data = client_sock.recv(4096)
             if not raw_data:
                 break
-            print(f"[+] Received raw TCP data: {raw_data.decode('utf-8')}", flush=True)
+            print(f"[<] Received raw TCP data: {Fore.LIGHTBLACK_EX}{raw_data.decode('utf-8')}", flush=True)
             # Apply pipeline transformations
             transformed = pipeline.apply_pipeline({"raw_data": raw_data.decode('utf-8')}, pipeline_steps)
             encoded = json.dumps(transformed).encode('utf-8')
             # Forward to destinations
             if not forward_to_destinations(encoded, destinations):
+                print (f"xxxxxxxx destination:[{destinations}]xxxxxxxxxxxxxx", flush=True)   #DEBUG
                 write_to_cache(encoded, tag=source_cfg['name'])
-                print(f"[!] Failed to forward raw TCP data, cached locally.", flush=True)
+                print(f"{Fore.RED}[!] Failed to forward raw TCP data, cached locally.", flush=True)
     except Exception as e:
-        print(f"[!] Error handling raw TCP client: {e}", flush=True)
-        print_error_details(e)
+        print_error_details(f"[!] Error handling raw TCP client: {e}")
     finally:
         client_sock.close()
         print(f"[-] Disconnected from {client_ip}:{client_port}", flush=True)
@@ -117,8 +116,8 @@ def handle_raw_tcp_source(source_cfg):
     pipeline_steps = source_cfg.get('pipeline', [])
     destinations = source_cfg.get('destinations', [])
 
-    print(f"[*] {Fore.CYAN}Listening on {ip}:{port} for raw TCP data", flush=True)
-    logger.info(f"{__doc__}:Listening on {ip}:{port} for raw TCP data")
+    print(f"[*] Listening on {ip}:{port} for {Fore.GREEN}raw TCP {Fore.RESET}data", flush=True)
+    #logger.info(f"{__name__}:Listening on {ip}:{port} for raw TCP data")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind((ip, port))
@@ -128,9 +127,7 @@ def handle_raw_tcp_source(source_cfg):
                 client_sock, addr = server.accept()
                 threading.Thread(target=handle_raw_tcp_client, args=(client_sock, addr, source_cfg), daemon=True).start()
             except Exception as e:
-                print(f"[!] Error handling raw TCP data: {e}", flush=True)
-                logger.error(f"Error handling raw TCP data: {e}")
-                print_error_details(e)
+                print_error_details(f"[!] Error handling raw TCP data: {e}")
 # End of handle_raw_tcp_source()
 #------------------------------------------------------
 
@@ -144,24 +141,24 @@ def handle_raw_udp_source(source_cfg):
     port = source_cfg['listen_port']
     pipeline_steps = source_cfg.get('pipeline', [])
     destinations = source_cfg.get('destinations', [])
-    print(f"[*] {Fore.LIGHTCYAN_EX}Listening on {ip}:{port} for raw UDP data", flush=True)
+    print(f"[*] Listening on {ip}:{port} for {Fore.GREEN}raw UDP{Fore.RESET} data", flush=True)
+    #logger.info(f"{__name__}:Listening on {ip}:{port} for raw UDP data")
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server:
         server.bind((ip, port))
         while True:
             try:
                 raw_data, addr = server.recvfrom(4096)
                 client_ip, client_port = addr
-                print(f"[+] Received raw UDP data from {client_ip}:{client_port}: {raw_data.decode('utf-8')}", flush=True)
+                print(f"[<] Received raw UDP data from {client_ip}:{client_port}: {Fore.LIGHTBLACK_EX}{raw_data.decode('utf-8')}", flush=True)
                 # Apply pipeline transformations
                 transformed = pipeline.apply_pipeline({"raw_data": raw_data.decode('utf-8')}, pipeline_steps)
                 encoded = json.dumps(transformed).encode('utf-8')
                 # Forward to destinations
                 if not forward_to_destinations(encoded, destinations):
                     write_to_cache(encoded, tag=source_cfg['name'])
-                    print(f"[!] Failed to forward raw UDP data, cached locally.", flush=True)
+                    print(f"{Fore.RED}[!] Failed to forward raw UDP data, cached locally.", flush=True)
             except Exception as e:
-                print(f"[!] Error handling raw UDP data: {e}", flush=True)
-                print_error_details(e)
+                print_error_details(f"[!] Error handling raw UDP data: {e}")
 # End of handle_raw_udp_source()
 #------------------------------------------------------
 
@@ -179,14 +176,13 @@ def forward_to_splunk_hec(data, url, token):
     try:
         response = requests.post(url, headers=headers, data=data)
         if response.status_code == 200:
-            print(f"[+] Successfully sent to Splunk HEC: {url}")
+            print(f"[-] Esablishing a socket to to Splunk HEC: {url}")
             return True
         else:
-            print(f"[!] Failed to send to Splunk HEC: {url}, Status Code: {response.status_code}", flush=True)
+            print(f"{Fore.RED}[!] Failed to send to Splunk HEC: {url}, Status Code: {response.status_code}", flush=True)
             return False
     except Exception as e:
-        print(f"[!] Error sending to Splunk HEC: {e}")
-        print_error_details(e)
+        print_error_details(f"[!] Error sending to Splunk HEC: {e}")
         return False
 # End of forward_to_splunk_hec()
 #------------------------------------------------------
@@ -202,8 +198,7 @@ def forward_to_s3(data, bucket_name, region):
         print(f"[+] Successfully uploaded to S3 bucket: {bucket_name}, key: {key}", flush=True)
         return True
     except Exception as e:
-        print(f"[!] Failed to upload to S3 bucket {bucket_name}: {e}")
-        print_error_details(e)
+        print_error_details(f"[!] Failed to upload to S3 bucket {bucket_name}: {e}")
         return False
 # End of forward_to_s3()
 #------------------------------------------------------
@@ -219,8 +214,7 @@ def forward_to_azure_blob(data, container_name, connection_string):
         print(f"[+] Successfully uploaded to Azure Blob container: {container_name}", flush=True)
         return True
     except Exception as e:
-        print(f"[!] Failed to upload to Azure Blob container {container_name}: {e}")
-        print_error_details(e)
+        print_error_details(f"[!] Failed to upload to Azure Blob container {container_name}: {e}")
         return False
 # End of forward_to_azure_blob()
 #------------------------------------------------------
@@ -237,8 +231,7 @@ def forward_to_gcs(data, bucket_name):
         print(f"[+] Successfully uploaded to GCS bucket: {bucket_name}", flush=True)
         return True
     except Exception as e:
-        print(f"[!] Failed to upload to GCS bucket {bucket_name}: {e}")
-        print_error_details(e)
+        print_error_details(f"[!] Failed to upload to GCS bucket {bucket_name}: {e}")
         return False
 # End of forward_to_gcs()
 #------------------------------------------------------
@@ -255,14 +248,13 @@ def forward_to_tcp_udp(data, dest):
         if protocol == 'tcp':
             with socket.create_connection((ip, port), timeout=2) as sock:
                 sock.sendall(data)
-                print(f"[+] Successfully sent data to TCP destination {ip}:{port}", flush=True)
+                print(f"[-] Esablishing a socket to data to TCP destination {ip}:{port}", flush=True)
         elif protocol == 'udp':
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
                 sock.sendto(data, (ip, port))
-                print(f"[+] Successfully sent data to UDP destination {ip}:{port}", flush=True)
+                print(f"[-] Esablishing a socket to data to UDP destination {ip}:{port}", flush=True)
     except Exception as e:
-        print(f"[!] Failed to send data to {protocol.upper()} destination {ip}:{port} - {e}")
-        print_error_details(e)
+        print_error_details(f"[!] Failed to send data to {protocol.upper()} destination {ip}:{port} - {e}")
 # End of forward_to_tcp_udp()
 #------------------------------------------------------
 #------------------------------------------------------
@@ -276,11 +268,10 @@ def forward_to_tcp_syslog_dest(data, dest):
     try:
         with socket.create_connection((ip, port), timeout=2) as sock:
             sock.sendall(data)
-            print(f"[+] Successfully sent Syslog TCP data to {ip}:{port}", flush=True)
+            print(f"[-] Esablishing a socket to Syslog TCP data to {ip}:{port}", flush=True)
         return True
     except Exception as e:
-        print(f"[!] Failed to send Syslog TCP data to {ip}:{port} - {e}", flush=True)
-        print_error_details(e)
+        print_error_details(f"[!] Failed to send Syslog TCP data to {ip}:{port} - {e}", flush=True)
         return False
 # End of forward_to_tcp_syslog_dest()
 #------------------------------------------------------
@@ -296,11 +287,10 @@ def forward_to_udp_syslog_dest(data, dest):
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
             sock.sendto(data, (ip, port))
-            print(f"[+] Successfully sent Syslog UDP data to {ip}:{port}", flush=True)
+            print(f"[-] Esablishing a socket to Syslog UDP data to {ip}:{port}", flush=True)
         return True
     except Exception as e:
-        print(f"[!] Failed to send Syslog UDP data to {ip}:{port} - {e}", flush=True)
-        print_error_details(e)
+        print_error_details(f"[!] Failed to send Syslog UDP data to {ip}:{port} - {e}")
         return False
 # End of forward_to_udp_syslog_dest()
 #------------------------------------------------------
@@ -320,6 +310,7 @@ def forward_to_destinations(data, destinations):
                     forward_to_tcp_syslog_dest(data, dest)
                 else:
                     forward_to_tcp_udp(data, dest)
+
             elif 'bucket_name' in dest:
                 if 'region' in dest:
                     forward_to_s3(data, dest['bucket_name'], dest['region'])
@@ -329,10 +320,10 @@ def forward_to_destinations(data, destinations):
                 forward_to_azure_blob(data, dest['container_name'], dest.get('connection_string'))
             elif 'url' in dest and 'token' in dest:
                 forward_to_splunk_hec(data, dest['url'], dest['token'])
-            print(f"[+] Successfully forwarded data to destination: {dest}", flush=True)
+
+            print(f"[-] Forwarding data to destination: {dest}", flush=True)
         except Exception as e:
-            print(f"[!] Failed to forward data to destination: {dest} - {e}", flush=True)
-            print_error_details(e)
+            print_error_details(f"[!] Failed to forward data to destination: {dest} - {e}")
 # End of forward_to_destinations()
 #------------------------------------------------------
 
@@ -342,6 +333,8 @@ def handle_splunk_hec_collector_source(source_cfg):
     """
     Handles incoming data from a Splunk HEC endpoint.
     """
+    ip=source_cfg['listen_ip']
+    port=source_cfg['listen_port']
     endpoint = source_cfg['endpoint']
     token = source_cfg['token']
     pipeline_steps = source_cfg.get('pipeline', [])
@@ -354,7 +347,7 @@ def handle_splunk_hec_collector_source(source_cfg):
     def splunk_hec_handler():
         try:
             raw_data = request.get_json()
-            print(f"[+] Received data from Splunk HEC: {raw_data}", flush=True)
+            print(f"[<] Received data from Splunk HEC: {Fore.LIGHTBLACK_EX}{raw_data}", flush=True)
 
             # Apply pipeline transformations
             transformed = pipeline.apply_pipeline(raw_data, pipeline_steps)
@@ -363,16 +356,18 @@ def handle_splunk_hec_collector_source(source_cfg):
             # Forward to destinations
             if not forward_to_destinations(encoded, destinations):
                 write_to_cache(encoded, tag=source_cfg['name'])
-                print(f"[!] Failed to forward data from Splunk HEC, cached locally.", flush=True)
+                print(f"{Fore.RED}[!] Failed to forward data from Splunk HEC, cached locally.", flush=True)
 
             return jsonify({"status": "success"}), 200
         except Exception as e:
-            print(f"[!] Error processing Splunk HEC data: {e}", flush=True)
-            print_error_details(e)
+            print_error_details(f"[!] Error processing Splunk HEC data: {e}")
             return jsonify({"status": "error", "message": str(e)}), 500
 
     # Start the Flask app
+    print (f"[*] Listenig on {ip}:{port} for {Fore.GREEN}Splunk HEC{Fore.GREEN} data (using Flask)", flush=True)
     app.run(host=source_cfg.get('listen_ip', '0.0.0.0'), port=source_cfg['listen_port'], threaded=True)
+
+    # Keep the app running
 # End of handle_splunk_hec_collector_source()
 #------------------------------------------------------
 #------------------------------------------------------
@@ -395,7 +390,7 @@ def handle_s3_collector_source(source_cfg):
             # List objects in the S3 bucket
             response = s3_client.list_objects_v2(Bucket=bucket_name)
             if 'Contents' not in response:
-                print(f"[!] No files found in S3 bucket: {bucket_name}")
+                print(f"{Fore.RED}[!] No files found in S3 bucket: {bucket_name}")
                 time.sleep(polling_interval)
                 continue
 
@@ -417,7 +412,7 @@ def handle_s3_collector_source(source_cfg):
                     # Forward to destinations
                     if not forward_to_destinations(encoded, destinations):
                         write_to_cache(encoded, tag=source_cfg['name'])
-                        print(f"[!] Failed to forward data from S3 key: {key}, cached locally.")
+                        print(f"{Fore.RED}[!] Failed to forward data from S3 key: {key}, cached locally.")
 
                     # Mark the file as processed
                     processed_keys.add(key)
@@ -428,11 +423,9 @@ def handle_s3_collector_source(source_cfg):
                         print(f"[+] Deleted file from S3 bucket: {bucket_name}, key: {key}")
 
                 except Exception as e:
-                    print(f"[!] Error processing file from S3 bucket: {bucket_name}, key: {key}, error: {e}")
-                    print_error_details(e)
+                    print_error_details(f"[!] Error processing file from S3 bucket: {bucket_name}, key: {key}, error: {e}")
         except Exception as e:
-            print(f"[!] Error polling S3 bucket: {bucket_name}, error: {e}")
-            print_error_details(e)
+            print_error_details(f"[!] Error polling S3 bucket: {bucket_name}, error: {e}")
         # Wait for the next polling interval
         time.sleep(polling_interval)
 # End of handle_s3_collector_source()
@@ -471,17 +464,15 @@ def handle_gcp_collector_source(source_cfg):
                     # Forward to destinations
                     if not forward_to_destinations(encoded, destinations):
                         write_to_cache(encoded, tag=source_cfg['name'])
-                        print(f"[!] Failed to forward data from GCP blob: {blob.name}, cached locally.")
+                        print(f"{Fore.RED}[!] Failed to forward data from GCP blob: {blob.name}, cached locally.")
 
                     # Mark the blob as processed
                     processed_blobs.add(blob.name)
 
                 except Exception as e:
-                    print(f"[!] Error processing blob from GCP bucket: {bucket_name}, blob: {blob.name}, error: {e}")
-                    print_error_details(e)
+                    print_error_details(f"[!] Error processing blob from GCP bucket: {bucket_name}, blob: {blob.name}, error: {e}")
         except Exception as e:
-            print(f"[!] Error polling GCP bucket: {bucket_name}, error: {e}")
-            print_error_details(e)
+            print_error_details(f"[!] Error polling GCP bucket: {bucket_name}, error: {e}")
         # Wait for the next polling interval
         time.sleep(polling_interval)
 # End of handle_gcp_collector_source()
@@ -522,17 +513,16 @@ def handle_azure_blob_collector_source(source_cfg):
                     # Forward to destinations
                     if not forward_to_destinations(encoded, destinations):
                         write_to_cache(encoded, tag=source_cfg['name'])
-                        print(f"[!] Failed to forward data from Azure blob: {blob.name}, cached locally.")
+                        print(f"{Fore.RED}[!] Failed to forward data from Azure blob: {blob.name}, cached locally.")
 
                     # Mark the blob as processed
                     processed_blobs.add(blob.name)
 
                 except Exception as e:
-                    print(f"[!] Error processing blob from Azure Blob container: {container_name}, blob: {blob.name}, error: {e}")
+                    print(f"{Fore.RED}[!] Error processing blob from Azure Blob container: {container_name}, blob: {blob.name}, error: {e}")
                     print_error_details(e)
         except Exception as e:
-            print(f"[!] Error polling Azure Blob container: {container_name}, error: {e}")
-            print_error_details(e)
+            print_error_details(f"[!] Error polling Azure Blob container: {container_name}, error: {e}")
 
         # Wait for the next polling interval
         time.sleep(polling_interval)
@@ -552,14 +542,15 @@ def handle_syslog_udp_source(source_cfg):
     pipeline_steps = source_cfg.get('pipeline', [])
     destinations = source_cfg.get('destinations', [])
 
-    print(f"[*] {Fore.GREEN}Listening on {ip}:{port} for Syslog UDP messages", flush=True)
+    print(f"[*] Listening on {ip}:{port} for {Fore.GREEN}Syslog UDP{Fore.GREEN} messages", flush=True)
+    #logger.info(f"{__name__}:Listening on {ip}:{port} for Syslog UDP messages")
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server:
         server.bind((ip, port))
         while True:
             try:
                 raw_data, addr = server.recvfrom(4096)
                 client_ip, client_port = addr
-                print(f"[+] Received Syslog UDP message from {client_ip}:{client_port}: {raw_data.decode('utf-8')}")
+                print(f"[<] Received Syslog UDP message from {client_ip}:{client_port}: {Fore.LIGHTBLACK_EX}{raw_data.decode('utf-8')}")
 
                 # Apply pipeline transformations
                 transformed = pipeline.apply_pipeline({"raw_data": raw_data.decode('utf-8')}, pipeline_steps)
@@ -568,10 +559,9 @@ def handle_syslog_udp_source(source_cfg):
                 # Forward to destinations
                 if not forward_to_destinations(encoded, destinations):
                     write_to_cache(encoded, tag=source_cfg['name'])
-                    print(f"[!] Failed to forward Syslog UDP message, cached locally.")
+                    print(f"{Fore.RED}[!] Failed to forward Syslog UDP message, cached locally.")
             except Exception as e:
-                print(f"[!] Error handling Syslog UDP message: {e}")
-                print_error_details(e)
+                print_error_details(f"[!] Error handling Syslog UDP message: {e}")
 # End of handle_syslog_udp_source()
 #------------------------------------------------------
 #------------------------------------------------------
@@ -585,7 +575,8 @@ def handle_syslog_tcp_source(source_cfg):
     pipeline_steps = source_cfg.get('pipeline', [])
     destinations = source_cfg.get('destinations', [])
 
-    print(f"[*] {Fore.YELLOW}Listening on {ip}:{port} for Syslog TCP messages", flush=True)
+    print(f"[*] Listening on {ip}:{port} for {Fore.GREEN}Syslog TCP{Fore.RESET} messages", flush=True)
+    #logger.info(f"{__name__}:Listening on {ip}:{port} for Syslog TCP messages")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind((ip, port))
@@ -611,7 +602,7 @@ def handle_syslog_tcp_client(client_sock, addr, source_cfg):
             raw_data = client_sock.recv(4096)
             if not raw_data:
                 break
-            print(f"[+] Received Syslog TCP message: {raw_data.decode('utf-8')}", flush=True)
+            print(f"[<] Received Syslog TCP message: {Fore.LIGHTBLACK_EX}{raw_data.decode('utf-8')}", flush=True)
 
             # Apply pipeline transformations
             transformed = pipeline.apply_pipeline({"raw_data": raw_data.decode('utf-8')}, pipeline_steps)
@@ -620,10 +611,9 @@ def handle_syslog_tcp_client(client_sock, addr, source_cfg):
             # Forward to destinations
             if not forward_to_destinations(encoded, destinations):
                 write_to_cache(encoded, tag=source_cfg['name'])
-                print(f"[!] Failed to forward Syslog TCP message, cached locally., flush=True")
+                print(f"{Fore.RED}[!] Failed to forward Syslog TCP message, cached locally., flush=True")
     except Exception as e:
-        print(f"[!] Error handling Syslog TCP client: {e}")
-        print_error_details(e)
+        print_error_details(f"[!] Error handling Syslog TCP client: {e}")
     finally:
         client_sock.close()
         print(f"[-] Disconnected from {client_ip}:{client_port}",flush=True)
@@ -653,26 +643,26 @@ def start_sources_listeners(source_cfg):
     elif protocol == 'splunk_hec':
         threading.Thread(target=handle_splunk_hec_collector_source, args=(source_cfg,), daemon=True).start()
     '''
-    if name == 'syslog_udp_source':
+    if name == '_s_syslog_udp_source':
         threading.Thread(target=handle_syslog_udp_source, args=(source_cfg,), daemon=True).start()
-    elif name == 'syslog_tcp_source':
+    elif name == '_s_syslog_tcp':
         threading.Thread(target=handle_syslog_tcp_source, args=(source_cfg,), daemon=True).start()
 
-    elif name == 'raw_tcp_source':
+    elif name == '_s_raw_tcp':
         threading.Thread(target=handle_raw_tcp_source, args=(source_cfg,), daemon=True).start()
-    elif name == 'raw_udp_source':   
+    elif name == '_s_raw_udp':   
         threading.Thread(target=handle_raw_udp_source, args=(source_cfg,), daemon=True).start()
 
-    elif name == 's3_collector_source':
+    elif name == '_s_s3_collector':
         threading.Thread(target=handle_s3_collector_source, args=(source_cfg,), daemon=True).start()
-    elif name == 'gcp_collector_source':
+    elif name == '_s_gcp_collector':
         threading.Thread(target=handle_gcp_collector_source, args=(source_cfg,), daemon=True).start()
-    elif name == 'azure_blob_collector_source':
+    elif name == '_s_azure_blob_collector':
         threading.Thread(target=handle_azure_blob_collector_source, args=(source_cfg,), daemon=True).start()
-    elif name == 'splunk_hec_collector_source':
+    elif name == '_s_splunk_hec_collector':
         threading.Thread(target=handle_splunk_hec_collector_source, args=(source_cfg,), daemon=True).start()
     else:
-        print(f"[!] {Fore.RED}Unknown source name in configuration: {name}. Skipping.", flush=True)
+        print(f"{Fore.RED}[!] {Fore.RED}Unknown source name in configuration: {name}. Skipping.", flush=True)
         return
     
 # End of start_sources_listeners()
@@ -689,7 +679,7 @@ def main():
     global CONFIG
     CONFIG = load_config()
     if not CONFIG:
-        print("[!] Failed to load configuration.", flush=True)
+        print(f"{Fore.RED}[!] Failed to load configuration.", flush=True)
         return
 
     for source in CONFIG.get("sources", []):
@@ -714,6 +704,17 @@ def main():
 
 #===================================================
 if __name__ == "__main__":
+
+    #---For testing only ---
+    interface_name = "en0"  # Replace with your actual interface name
+    alias_ip_address = "192.168.1.100"
+    alias_subnet_mask = "255.255.255.0"
+
+    #create_ip_alias(interface_name, alias_ip_address, alias_subnet_mask)
+    #ifc Example of deleting the created alias
+    # delete_ip_alias(interface_name, alias_ip_address)
+
+
     main()
 # End of proxy.py
 #===================================================

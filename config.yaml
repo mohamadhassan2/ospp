@@ -7,8 +7,8 @@
 
 sources:
   #-----------------Source 1: Syslog (UDP)--------------
-  - name: syslog_udp_source
-    enabled: true       # Enable or disable this source
+  - name: _s_syslog_udp
+    enabled: false       # Enable or disable this source
     protocol: udp       # Protocol: udp
     listen_ip: 0.0.0.0  # IP address to listen on
     listen_port: 514    # Standard Syslog UDP port
@@ -19,16 +19,16 @@ sources:
         replacement: "[ALERT]"  # Replacement string
     destinations:       # List of destinations to forward data to
       - ip: 192.168.1.100
-        port: 514
+        port: 1601
         protocol: syslog_udp
-      - ip: 192.168.1.101
-        port: 601
+      - ip: 192.168.1.100
+        port: 1601
         protocol: syslog_tcp
   # End of Source 1 Configuration
 #------------------------------------------------------
 #---------------Source 2: Syslog (TCP)-----------------
-  - name: syslog_tcp_source
-    enabled: true      # Enable or disable this source
+  - name: _s_syslog_tcp
+    enabled: false      # Enable or disable this source
     protocol: tcp       # Protocol: tcp
     listen_ip: 0.0.0.0  # IP address to listen on
     listen_port: 601    # Standard Syslog TCP port
@@ -46,9 +46,10 @@ sources:
         protocol: syslog_tcp
 # End of Source 2 Configuration
 #------------------------------------------------------
+
 #---------------Source 3: RAW (UDP))-----------------
-  - name: raw_udp_source
-    enabled: true      # Enable or disable this source
+  - name: _s_raw_udp
+    enabled: false      # Enable or disable this source
     protocol: udp       # Protocol: tcp
     listen_ip: 0.0.0.0  # IP address to listen on
     listen_port: 1514    # Standard Syslog TCP port
@@ -58,28 +59,30 @@ sources:
         pattern: "\\bCRITICAL\\b"  # Regex pattern to match
         replacement: "[SEVERE]"    # Replacement string
     destinations:       # List of destinations to forward data to
-      - ip: 127.0.0.1
+      - ip: 192.168.1.100
         port: 9202      # Primary destination
 # End of Source 3 Configuration
 #------------------------------------------------------
 #---------------Source 4: RAW (TCP)-----------------
-  - name: raw_tcp_source
+  - name: _s_raw_tcp
     enabled: true       # Enable or disable this source
     protocol: tcp       # Protocol: tcp
     listen_ip: 0.0.0.0  # IP address to listen on
-    listen_port: 5000    # Standard Syslog TCP port
+    listen_port: 1514    # Standard Syslog TCP port
     pipeline:           # Pipeline transformations to apply
       - type: regex_replace
-        field: raw_data
-        pattern: "\\bERROR\\b"  # Regex pattern to match
-        replacement: "[ALERT]"  # Replacement string
+        field: syslog_message
+        pattern: "\\bCRITICAL\\b"  # Regex pattern to match
+        replacement: "[SEVERE]"    # Replacement string
     destinations:       # List of destinations to forward data to
       - ip: 192.168.1.100
-        port: 514
-        protocol: syslog_udp
-      - ip: 192.168.1.101
+        id: __Output_d_raw_tcp
+        port: 9202      # Primary destination
+        protocol: udp
+      - ip: 192.168.1.103
+        name: 192.168.1.100_d_raw_tcp
         port: 601
-        protocol: syslog_tcp
+        protocol: udp
 # End of Source 4 Configuration
 #------------------------------------------------------
 
@@ -88,7 +91,7 @@ sources:
 
 #               ***** Collectors *****
   #-----------------Source 1C: AWS S3 collector------------
-  - name: s3_collector_source
+  - name: _s_s3_collector
     enabled: false       # Enable or disable this source
     protocol: s3        # Protocol: s3
     bucket_name: my-source-bucket  # Name of the S3 bucket to fetch data from
@@ -105,7 +108,7 @@ sources:
 # End of Source 1c Configuration
 #------------------------------------------------------
 #----------------Source 2C: GCP collector----------------------
-  - name: gcp_collector_source
+  - name: _s_gcp_collector
     enabled: false      # Enable or disable this source
     protocol: gcp       # Protocol: gcp
     bucket_name: my-gcp-source-bucket  # Name of the GCP bucket to fetch data from
@@ -120,7 +123,7 @@ sources:
   # End of Source 2C Configuration
   #------------------------------------------------------
   #-----------------Source 3C: Azure Blob Storage collector---------------
-  - name: azure_blob_collector_source
+  - name: _s_azure_blob_collector
     enabled: false       # Enable or disable this source
     protocol: azure_blob  # Protocol: azure_blob
     container_name: my-container  # Name of the Azure Blob container
@@ -135,8 +138,8 @@ sources:
   # End of Source 3C Configuration
   #----------------------------------------------------------------------
   #-----------------Source 4C: Splunk HEC collector-----------------------
-  - name: splunk_hec_collector_source
-    enabled: true       # Enable or disable this source
+  - name: _s_splunk_hec_collector
+    enabled: false       # Enable or disable this source
     protocol: tcp       # Protocol: tcp
     listen_ip: 0.0.0.0  # IP address to listen on
     listen_port: 8088    # Standard Syslog TCP port

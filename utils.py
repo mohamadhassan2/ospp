@@ -10,6 +10,39 @@ init(autoreset=True)  # Initialize colorama for automatic reset of colors
 import sys
 OSPP_DEAULT_LOG_FILE = 'ospp.log'
 
+#-------FOR TESTING ONLY-------------------
+import subprocess
+
+def create_ip_alias(interface, ip_address, subnet_mask):
+    """Creates an IP alias on the specified network interface.
+
+    Args:
+        interface (str): The network interface name (e.g., "en0").
+        ip_address (str): The IP address for the alias.
+        subnet_mask (str): The subnet mask for the alias (e.g., "255.255.255.0").
+    """
+    command = f"sudo ifconfig {interface} alias {ip_address} netmask {subnet_mask}"
+    try:
+        subprocess.run(command, shell=True, check=True)
+        print(f"IP alias {ip_address} created on interface {interface}.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error creating IP alias: {e}")
+
+def delete_ip_alias(interface, ip_address):
+    """Deletes an IP alias from the specified network interface.
+
+    Args:
+        interface (str): The network interface name (e.g., "en0").
+        ip_address (str): The IP address of the alias to delete.
+    """
+    command = f"sudo ifconfig {interface} -alias {ip_address}"
+    try:
+        subprocess.run(command, shell=True, check=True)
+        print(f"IP alias {ip_address} deleted from interface {interface}.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error deleting IP alias: {e}")
+#-----FOR TESTING ONLY-------------------
+
 #--------------------------------------------------------------
 #Function to setup signal traps. We need to know when user hit CTRL-C
 def signal_handler(sig, frame):
@@ -60,19 +93,22 @@ logger = setup_logging (OSPP_DEAULT_LOG_FILE)  # Set up logging configuration
 
 #--------------------------------------------------------------
 # Function to print error details
-def print_error_details(e):
+def print_error_details(msg):
     exc_type, exc_value, exc_traceback = sys.exc_info()
     traceback_details = traceback.extract_tb(exc_traceback)
     filename, line_number, function_name, text = traceback_details[-1]
-    print(f"{Fore.RED}-------Error found in: {__name__}-----", flush=True)
-    print(f"{Fore.RED}Error: {e}", flush=True)
-    print(f"{Fore.RED}Error occurred in file: {filename}", flush=True)  
-    print(f"{Fore.RED}Line number: {line_number}", flush=True)
-    print(f"{Fore.RED}Text: {text}", flush=True)
-    print(f"{Fore.RED}Function name: {function_name}\n", flush=True)
-    print ("--------------------------------------", flush=True)
+
+    print(f"{Fore.LIGHTRED_EX}{msg}", flush=True)
+    print(f"{Fore.LIGHTRED_EX}[D] {Fore.LIGHTCYAN_EX}Module:{Fore.LIGHTBLACK_EX}[{__name__}] {Fore.LIGHTCYAN_EX}File:{Fore.LIGHTBLACK_EX}[{filename}] {Fore.LIGHTCYAN_EX}Line:{Fore.LIGHTBLACK_EX}[{line_number}] {Fore.LIGHTCYAN_EX}Function:{Fore.LIGHTBLACK_EX}[{function_name}]", flush=True)
+
+    #print(f"{Fore.RED}Error: {e}", flush=True)
+    #print(f"{Fore.RED}Error occurred in file: {filename}", flush=True)  
+    #print(f"{Fore.RED}Line number: {line_number}", flush=True)
+    #print(f"{Fore.RED}Text: {text}", flush=True)
+    #print(f"{Fore.RED}Function name: {function_name}\n", flush=True)
+    #print ("--------------------------------------", flush=True)
     # Log the error details
-    logging.error(f"Error occurred in file: {filename}")
+    logging.error(f"Error occurred in file: {filename}: {line_number} in function: {function_name}")
 #End of print_error_details()
 # -------------------------------------------------------------
 
