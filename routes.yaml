@@ -1,0 +1,14 @@
+routes:
+
+  - source_id: __Input_raw_tcp
+    pipeline_id: __Pipeline_raw_tcp
+    destination_ids:
+      - __Output_syslog_tcp
+      - __Output_syslog_udp
+
+  #- source_id: __Input_raw_udp
+  #  pipeline_id: __Pipeline_raw_udp
+  #  destination_ids:
+  #    - __Output_syslog_tcp
+  #    - __Output_syslog_udp
+

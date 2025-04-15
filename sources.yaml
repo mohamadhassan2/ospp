@@ -1,0 +1,63 @@
+sources:
+ 
+  - source_id: __Input_syslog_udp
+    name: syslog_udp_server
+    enabled: true
+    protocol: tcp
+    listen_ip: 0.0.0.0
+    listen_port: 1514
+  - source_id: __Input_syslog_tcp
+    name: syslog_tcp_server
+    enabled: true
+    protocol: tcp
+    listen_ip: 0.0.0.0
+    listen_port: 1514
+
+  - source_id: __Input_raw_tcp
+    name: raw_tcp_server
+    enabled: true
+    protocol: tcp
+    listen_ip: 0.0.0.0
+    listen_port: 1614
+    
+  - source_id: __Input_raw_udp
+    name: raw_udp_server
+    enabled: true
+    protocol: udp
+    listen_ip: 0.0.0.0
+    listen_port: 1614
+#---------------------------------------
+
+  - source_id: __Input_s3_collector
+    name: s3_collector_server
+    enabled: false
+    protocol: udp
+    bucket_name: my-source-bucket
+    region: us-east-1
+    polling_interval: 60
+
+  - source_id: __Input_gcp_collector
+    name: gcp_collector_server
+    enabled: false
+    protocol: gcp
+    bucket_name: my-gcp-source-bucket
+    polling_interval: 60
+
+  - source_id: __Input_azure_blob_collector
+    name: azure_blob_collector_server
+    enabled: false
+    protocol: azure_blob
+    container_name: my-container
+    polling_interval: 60
+
+  - source_id: __Input_splunk_hec_collector
+    name: splunk_hec_collector_server
+    enabled: false
+    protocol: splunk_hec
+    listen_ip: 0.0.0.0
+    listen_port: 8088
+    polling_interval: 60
+    protocol: splunk_hec
+    endpoint: /services/collector
+    token: CF179AE4-3C99-45F5-A7CC-3284AA91CF67
+#--------------------------------------

@@ -4,28 +4,9 @@
 # Each source listens on a specific protocol (TCP, UDP, AWS S3, GCP, Azure Blob, Splunk HEC),
 # applies a pipeline of transformations, and forwards the processed data to one or more destinations.
 #------------------------------------------------------
-
+'''
 sources:
-  #-----------------Source 1: Syslog (UDP)--------------
-  - name: _s_syslog_udp
-    enabled: false       # Enable or disable this source
-    protocol: udp       # Protocol: udp
-    listen_ip: 0.0.0.0  # IP address to listen on
-    listen_port: 514    # Standard Syslog UDP port
-    pipeline:           # Pipeline transformations to apply
-      - type: regex_replace
-        field: raw_data
-        pattern: "\\bERROR\\b"  # Regex pattern to match
-        replacement: "[ALERT]"  # Replacement string
-    destinations:       # List of destinations to forward data to
-      - ip: 192.168.1.100
-        port: 1601
-        protocol: syslog_udp
-      - ip: 192.168.1.100
-        port: 1601
-        protocol: syslog_tcp
-  # End of Source 1 Configuration
-#------------------------------------------------------
+  
 #---------------Source 2: Syslog (TCP)-----------------
   - name: _s_syslog_tcp
     enabled: false      # Enable or disable this source
@@ -86,8 +67,16 @@ sources:
 # End of Source 4 Configuration
 #------------------------------------------------------
 
-
-
+  - id: source1
+    name: raw_tcp_source
+    enabled: true
+    protocol: tcp
+    listen_ip: 0.0.0.0
+    listen_port: 5000
+    pipeline_id: pipeline1
+    destination_ids:
+      - destination1
+      - destination2
 
 #               ***** Collectors *****
   #-----------------Source 1C: AWS S3 collector------------
@@ -156,3 +145,26 @@ sources:
         token: YOUR_SPLUNK_HEC_DEST_TOKEN
   # End of Source 4C Configuration
   #-----------------------------------------------------------------------
+
+destinations:
+  - id: destination1
+    name: syslog_udp_destination
+    ip: 192.168.1.100
+    port: 514
+    protocol: syslog_udp
+
+  - id: destination2
+    name: syslog_tcp_destination
+    ip: 192.168.1.101
+    port: 601
+    protocol: syslog_tcp
+
+pipelines:
+  - id: pipeline1
+    name: default_pipeline
+    steps:
+      - type: regex_replace
+        field: raw_data
+        pattern: "\\bERROR\\b"
+        replacement: "[ALERT]"
+'''

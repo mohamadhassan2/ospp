@@ -1,0 +1,67 @@
+#list of destinations to forward data to
+
+destinations:
+  - destination_id: __Output_syslog_udp
+    name: syslog_udp_destination
+    ip: 192.168.1.100
+    port: 514
+    protocol: syslog_udp
+
+  - destination_id: __Output_syslog_tcp
+    name: syslog_tcp_destination
+    ip: 192.168.1.101
+    port: 601
+    protocol: syslog_tcp
+
+  - destination_id: __Output_raw_tcp
+    name: _d_raw_tcp
+    ip: 192.168.1.100
+    port: 1601
+    protocol: raw_tcp
+
+  - destination_id: __Output_raw_udp
+    name: _d_raw_udp
+    ip: 192.168.1.100
+    port: 1601
+    protocol: raw_udp
+
+  - destination_id: __Output_s3
+    name: _d_s3
+    bucket_name: my-destination-bucket     # S3 destination bucket
+    region: us-east-1
+
+  - destination_id: __Output_gcp
+    name: _d_gcp
+    bucket_name: my-gcp-destination-bucket     # S3 destination bucket
+    region: us-east-1
+#    polling_interval: 60  # Time interval (in seconds) to poll the bucket for new files
+
+  - destination_id: __Output_azure_blob
+    name: _d_azure_blob
+    container_name: my-container  # Name of the Azure Blob container
+
+  - destination_id: __Output_splunk_hec
+    name: _d_splunk_hec_collector
+    url: https://splunk-server:8088/services/collector/event
+    token: YOUR_SPLUNK_HEC_TOKEN
+    method: POST
+    headers:
+      Authorization: Splunk YOUR_SPLUNK_HEC_TOKEN
+      Content-Type: application/json
+    protocol: splunk_hec
+    endpoint: /services/collector/event  
+
+  - destination_id: __Output_elasticsearch
+    name: _d_elasticsearch
+    index: my-elasticsearch-index
+    hosts:
+      - elasticsearch-host1:9200
+      - elasticsearch-host2:9200
+    protocol: elasticsearch
+
+  - destination_id: __Output_http
+    name: _d_http
+    url: http://example.com/api/logs
+    method: POST
+    headers:
+      Content-Type: application/json

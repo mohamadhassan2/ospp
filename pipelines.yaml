@@ -1,0 +1,50 @@
+#List of all pipelines transformations to apply
+
+pipelines:
+  - pipeline_id: __Pipeline_raw_udp
+    name: default_pipeline
+    steps:
+      - type: regex_replace
+        field: raw_data
+        pattern: "\\bERROR\\b"
+        replacement: "[ALERT]"
+
+  - pipeline_id: __Pipeline_raw_tcp
+    name: default_pipeline2
+    steps:
+      - type: regex_replace
+        field: raw_data
+        pattern: "\\bCRITICAL\\b"
+        replacement: "[SEVERE]"
+      - type: regex_replace
+        field: raw_data
+        pattern: "\\bWARNING\\b"
+        replacement: "[NOTICE]"
+      - type: regex_replace
+        field: raw_data
+        pattern: "\\bINFO\\b"
+        replacement: "[INFO]"        
+
+  - pipeline_id: __Pipeline_s3
+    name: default_pipeline3
+    steps:
+      - type: regex_replace
+        field: file_content
+        pattern: "\\bconfidential\\b" 
+        replacement: "[REDACTED]" 
+
+  - pipeline_id: __Pipeline_gcp
+    name: default_pipeline4
+    steps:
+      - type: regex_replace
+        field: raw_data
+        pattern: "\\bCRITICAL\\b"
+        replacement: "[SEVERE]"
+      - type: regex_replace
+        field: raw_data
+        pattern: "\\bWARNING\\b"
+        replacement: "[NOTICE]"
+      - type: regex_replace
+        field: raw_data
+        pattern: "\\bINFO\\b"
+        replacement: "[INFO]"
