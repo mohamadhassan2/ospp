@@ -72,7 +72,7 @@ def validate_config():
                 if dest_id not in destination_ids:
                     print(f"[!] Invalid 'destination_id' in route: {line}:{dest_id}")
 
-    print("[*] Validation complete with no errors.")
+    print("[*] Validation complete with no errors.\n")
 
 if __name__ == "__main__":
     validate_config()
