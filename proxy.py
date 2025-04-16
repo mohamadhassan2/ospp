@@ -27,7 +27,7 @@ from flask import Flask, logging, request, jsonify, render_template_string
 from colorama import Back, Style, init, Fore
 init(autoreset=True)  # Automatically reset color after each print
 
-from utils import create_ip_alias, setup_logging, print_error_details, signal_handler
+from utils import create_ip_alias, setup_logging, print_error_details, signal_handler, validate_config
 
 #------------------  Importing my modules & Local configs -------------------
 DEFAULT_DEBUG_LEVEL = 0
@@ -88,7 +88,7 @@ def write_to_cache(data, tag="unknown"):
         path = os.path.join(CACHE_DIR, fname)
         with open(path, 'wb') as f:
             f.write(data)
-        print(f"[+] Cached: {fname}", flush=True)
+        print(f"[+] Cache filename: {fname}", flush=True)
     except Exception as e:
         print_error_details(f"[!] Cache error: {e}", e)
 # End of write_to_cache()
@@ -118,7 +118,7 @@ def handle_raw_tcp_client(client_sock, addr, pipeline_cfg, destinations):
             # Forward to destinations
             if not forward_to_destinations(encoded, destinations):
                 write_to_cache(encoded, tag=pipeline_cfg['name'])
-                print(f"[!] Failed to forward raw TCP data, cached locally.", flush=True)
+                print(f"{Fore.RED}[!] Failed to forward raw TCP data, cached locally.", flush=True)
     except Exception as e:
         print_error_details(f"[!] Error handling raw TCP client: {e}", e)
     finally:
@@ -133,8 +133,9 @@ def handle_raw_tcp_source(source_cfg, routes, all_destinations, all_pipelines):
     """
     ip = source_cfg.get("listen_ip", "0.0.0.0")
     port = source_cfg["listen_port"]
+    route_count = len(routes)  # Count the number of configured routes
 
-    print(f"[*] {Fore.GREEN}Listening on {ip}:{port} for raw TCP data", flush=True)
+    print(f"[*] {Fore.LIGHTBLUE_EX}Listening on {ip}:{port} for raw TCP data.\t\t{Fore.BLUE}[{route_count} Route]", flush=True)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind((ip, port))
@@ -151,8 +152,6 @@ def handle_raw_tcp_source(source_cfg, routes, all_destinations, all_pipelines):
                 ).start()
 # End of handle_raw_tcp_source()
 #------------------------------------------------------
-
-
 #------------------------------------------------------
 def handle_raw_udp_source(source_cfg, all_routes, all_destinations, all_pipelines):
     """
@@ -162,12 +161,13 @@ def handle_raw_udp_source(source_cfg, all_routes, all_destinations, all_pipeline
     port = source_cfg["listen_port"]
 
     # Resolve all routes for this source
-    routes = resolve_routes(source_cfg["id"], all_routes)
-    if not routes:
-        print(f"[!] No routes found for source: {source_cfg['name']}", flush=True)
-        return
+    routes = resolve_routes(source_cfg["source_id"], all_routes)  # Updated to use "source_id"
+    #if not routes:
+    #    print(f"[!] No routes found for source: {source_cfg['name']}", flush=True)
+    #    return
+    route_count = len(routes)  # Count the number of configured routes
 
-    print(f"[*] {Fore.GREEN}Listening on {ip}:{port} for raw UDP data", flush=True)
+    print(f"[*] {Fore.LIGHTBLUE_EX}Listening on {ip}:{port} for raw UDP data.\t\t{Fore.BLUE}[{route_count} Route]", flush=True)
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server:
         server.bind((ip, port))
         while True:
@@ -187,7 +187,7 @@ def handle_raw_udp_source(source_cfg, all_routes, all_destinations, all_pipeline
                     # Forward to destinations
                     if not forward_to_destinations(encoded, destinations):
                         write_to_cache(encoded, tag=source_cfg['name'])
-                        print(f"[!] Failed to forward raw UDP data, cached locally.", flush=True)
+                        print(f"{Fore.RED}[!] Failed to forward raw UDP data, cached locally.", flush=True)
             except Exception as e:
                 print_error_details(f"[!] Error handling raw UDP data: {e}")
 # End of handle_raw_udp_source()
@@ -209,7 +209,7 @@ def forward_to_splunk_hec(data, url, token):
             print(f"[-] Esablishing a socket to to Splunk HEC: {url}")
             return True
         else:
-            print(f"{Fore.RED}[!] Failed to send to Splunk HEC: {url}, Status Code: {response.status_code}", flush=True)
+            print(f"{Fore.RED}[!] Destination DOWN! Failed to send to Splunk HEC: URL:[{url}], Status Code:[{response.status_code}]", flush=True)
             return False
     except Exception as e:
         print_error_details(f"[!] Error sending to Splunk HEC: {e}")
@@ -273,18 +273,21 @@ def forward_to_tcp_udp(data, dest):
     ip = dest['ip']
     port = dest['port']
     protocol = dest.get('protocol', 'tcp').lower()
-
+    print(f"[-] Forwarding data to destination: {ip}:{port} using protocol: {protocol}", flush=True)
     try:
         if protocol == 'tcp':
             with socket.create_connection((ip, port), timeout=2) as sock:
                 sock.sendall(data)
-                print(f"[-] Establishing a socket to data to TCP destination {ip}:{port}", flush=True)
+                print(f"[-] Successfully sent data to TCP destination {ip}:{port}", flush=True)
+                return True  # Ensure success is returned
         elif protocol == 'udp':
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
                 sock.sendto(data, (ip, port))
-                print(f"[-] Establishing a socket to data to UDP destination {ip}:{port}", flush=True)
+                print(f"[-] Successfully sent data to UDP destination {ip}:{port}", flush=True)
+                return True  # Ensure success is returned
     except Exception as e:
-        print_error_details(f"[!] Failed to send data to {protocol.upper()} destination {ip}:{port} - {e}", e)
+        print_error_details(f"[!] Destination DOWN! Failed to send data to protocol:[{protocol.upper()}] destination: [{ip}:{port}] - Error:[{e}]")
+        return False  # Return failure if an exception occurs
 # End of forward_to_tcp_udp()
 #------------------------------------------------------
 #------------------------------------------------------
@@ -301,7 +304,7 @@ def forward_to_tcp_syslog_dest(data, dest):
             print(f"[-] Establishing a socket to Syslog TCP data to {ip}:{port}", flush=True)
         return True
     except Exception as e:
-        print_error_details(f"[!] Failed to send Syslog TCP data to {ip}:{port} - {e}", e)
+        print_error_details(f"[!] Destination DOWN! Failed to send Syslog TCP data to [{ip}:{port}] - Error:[{e}]")
         return False
 # End of forward_to_tcp_syslog_dest()
 #------------------------------------------------------
@@ -320,7 +323,7 @@ def forward_to_udp_syslog_dest(data, dest):
             print(f"[-] Establishing a socket to Syslog UDP data to {ip}:{port}", flush=True)
         return True
     except Exception as e:
-        print_error_details(f"[!] Failed to send Syslog UDP data to {ip}:{port} - {e}", e)
+        print_error_details(f"[!] Destination DOWN! Failed to send Syslog UDP data to [{ip}:{port}] - Error:[{e}]")
         return False
 # End of forward_to_udp_syslog_dest()
 #------------------------------------------------------
@@ -339,7 +342,7 @@ def forward_to_destinations(data, destinations):
                 elif protocol == 'syslog_tcp':
                     forward_to_tcp_syslog_dest(data, dest)
                 else:
-                    forward_to_tcp_udp(data, dest)
+                    return (forward_to_tcp_udp(data, dest))      #This should RAW TCP/UDP
 
             elif 'bucket_name' in dest:
                 if 'region' in dest:
@@ -351,9 +354,9 @@ def forward_to_destinations(data, destinations):
             elif 'url' in dest and 'token' in dest:
                 forward_to_splunk_hec(data, dest['url'], dest['token'])
 
-            print(f"[-] Forwarding data to destination: {dest}", flush=True)
+            print(f"[-] Forwarding data to destination: {Fore.LIGHTBLACK_EX}{dest}", flush=True)
         except Exception as e:
-            print_error_details(f"[!] Failed to forward data to destination: {dest} - {e}")
+            print_error_details(f"{Fore.RED}[!] Failed to forward data to destination: {dest} - {e}")
 # End of forward_to_destinations()
 #------------------------------------------------------
 #------------------------------------------------------
@@ -367,14 +370,14 @@ def resolve_destinations(destination_ids, all_destinations):
     """
     Resolves destination configurations by their IDs.
     """
-    return [dest for dest in all_destinations if dest["id"] in destination_ids]
+    return [dest for dest in all_destinations if dest["destination_id"] in destination_ids]
 
 def resolve_pipeline(pipeline_id, all_pipelines):
     """
     Resolves a pipeline configuration by its ID.
     """
     for pipeline in all_pipelines:
-        if pipeline["id"] == pipeline_id:
+        if pipeline["pipeline_id"] == pipeline_id: 
             return pipeline
     return None
 # End of resolve_pipeline()
@@ -591,8 +594,9 @@ def handle_syslog_udp_source(source_cfg, routes, all_destinations, all_pipelines
     """
     ip = source_cfg.get('listen_ip', '0.0.0.0')
     port = source_cfg['listen_port']
+    route_count = len(routes)  # Count the number of configured routes
 
-    print(f"[*] {Fore.GREEN}Listening on {ip}:{port} for {Fore.GREEN}Syslog UDP{Fore.GREEN} messages", flush=True)
+    print(f"[*] {Fore.LIGHTBLUE_EX}Listening on {ip}:{port} for Syslog UDP messages.\t{Fore.BLUE}[{route_count} Route]", flush=True)
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server:
         server.bind((ip, port))
         while True:
@@ -625,8 +629,9 @@ def handle_syslog_tcp_source(source_cfg, routes, all_destinations, all_pipelines
     """
     ip = source_cfg.get('listen_ip', '0.0.0.0')
     port = source_cfg['listen_port']
+    route_count = len(routes)  # Count the number of configured routes
 
-    print(f"[*] {Fore.GREEN}Listening on {ip}:{port} for {Fore.GREEN}Syslog TCP{Fore.RESET} messages", flush=True)
+    print(f"[*] {Fore.LIGHTBLUE_EX}Listening on {ip}:{port} for {Fore.GREEN}Syslog TCP messages.\t{Fore.BLUE}[{route_count} Route]", flush=True)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind((ip, port))
@@ -687,8 +692,11 @@ def start_sources_listeners(source_cfg, all_routes, all_destinations, all_pipeli
 
     # Resolve all routes for this source
     routes = resolve_routes(source_id, all_routes)
+    route_count = len(routes)  # Count the number of configured routes
+   #print(f"{Fore.LIGHTBLUE_EX}[+] Source ID: {source_id} has {route_count} configured route(s).", flush=True)
+
     if not routes:
-        print(f"{Fore.LIGHTBLACK_EX}[!] No routes found for source ID: {source_id}. Starting source without routing.", flush=True)
+        #print(f"{Fore.LIGHTBLACK_EX}[!] No routes found for source ID: {source_id}. Starting source without routing.", flush=True)
         routes = []  # Proceed with an empty route list
 
     # Start the appropriate handler based on the source ID
@@ -724,8 +732,13 @@ def main():
     global CONFIG
     CONFIG = load_config()
     if not CONFIG:
-        print(f"{Fore.RED}[!] Failed to load configuration.", flush=True)
-        return
+        print(f"{Fore.RED}[!] Failed to load configuration. Existing", flush=True)
+        sys.exit(1)
+        signal.signal(signal.SIGINT, signal_handler)
+    else:
+        validate_config()
+        print(f"{Fore.GREEN}[+] Configuration loaded successfully with no errors.", flush=True)
+        
 
     sources = CONFIG.get("sources", [])
     destinations = CONFIG.get("destinations", [])
@@ -734,10 +747,10 @@ def main():
 
     for source in sources:
         if not source.get("enabled", True):
-            print(f"[-] Skipping disabled source: {source['name']}", flush=True)
+            print(f"{Fore.LIGHTBLACK_EX}[-] Skipping disabled source: {source['name']}", flush=True)
             continue
 
-        print(f"[+] Starting source: {source['name']}", flush=True)
+        #print(f"[+] Starting source: {source['name']}", flush=True)
         threading.Thread(
             target=start_sources_listeners,
             args=(source, routes, destinations, pipelines),

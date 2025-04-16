@@ -99,7 +99,7 @@ def print_error_details(msg):
     filename, line_number, function_name, text = traceback_details[-1]
 
     print(f"{Fore.LIGHTRED_EX}{msg}", flush=True)
-    print(f"{Fore.LIGHTRED_EX}[D] {Fore.LIGHTCYAN_EX}Module:{Fore.LIGHTBLACK_EX}[{__name__}] {Fore.LIGHTCYAN_EX}File:{Fore.LIGHTBLACK_EX}[{filename}] {Fore.LIGHTCYAN_EX}Line:{Fore.LIGHTBLACK_EX}[{line_number}] {Fore.LIGHTCYAN_EX}Function:{Fore.LIGHTBLACK_EX}[{function_name}]", flush=True)
+    print(f"{Fore.LIGHTRED_EX}[D] {Fore.LIGHTCYAN_EX}Text:{Fore.LIGHTBLACK_EX}[{text}] {Fore.LIGHTCYAN_EX}File:{Fore.LIGHTBLACK_EX}[{filename}] {Fore.LIGHTCYAN_EX}Line:{Fore.LIGHTBLACK_EX}[{line_number}] {Fore.LIGHTCYAN_EX}Function:{Fore.LIGHTBLACK_EX}[{function_name}]", flush=True)
 
     #print(f"{Fore.RED}Error: {e}", flush=True)
     #print(f"{Fore.RED}Error occurred in file: {filename}", flush=True)  
@@ -135,4 +135,87 @@ def DLevel(DEBUG_LEVEL=0):
         return f'[D:{Fore.LIGHTRED_EX}{DEBUG_LEVEL}{Fore.RESET}]'
     
 #End of DLevel()
+#--------------------------------------------------------------
+
+
+#--------------------------------------------------------------
+# Function to load YAML configuration files
+#import json    #if there is a neeed to dump dict to json
+
+def load_yaml(file_path=""):
+    try:
+        with open(file_path, "r") as f:
+            return yaml.safe_load(f)
+    except Exception as e:
+        print(f"{Fore.RED}[!] Error loading {file_path}: {e}")
+        return None
+
+def validate_config():
+    sources = load_yaml("sources.yaml")
+    destinations = load_yaml("destinations.yaml")
+    pipelines = load_yaml("pipelines.yaml")
+    routes = load_yaml("routes.yaml")
+
+    if not sources or not destinations or not pipelines or not routes:
+        print(f"{Fore.RED}[!] Failed to load one or more configuration files.")
+        return
+
+    # Validate sources.yaml
+    source_ids = set()
+    line=0
+    for source in sources.get("sources", []):
+        line+=1
+        if "source_id" not in source:
+            print(f"{Fore.RED}[!] Missing 'source_id' in sources.yaml: {line}:{source}")
+        else:
+            source_ids.add(source["source_id"])
+
+    # Validate destinations.yaml
+    destination_ids = set()
+    line=0
+    for dest in destinations.get("destinations", []):
+        line+=1
+        if "destination_id" not in dest:
+            print(f"{Fore.RED}[!] Missing 'destination_id' in destinations.yaml: {line}:{dest}")
+        else:
+            destination_ids.add(dest["destination_id"])
+
+    # Validate pipelines.yaml
+    pipeline_ids = set()
+    line=0
+    for pipeline in pipelines.get("pipelines", []):
+        line+=1
+        if "pipeline_id" not in pipeline:
+            print(f"{Fore.RED}[!] Missing 'pipeline_id' in pipelines.yaml: {line}:{pipeline}")
+        else:
+            pipeline_ids.add(pipeline["pipeline_id"])
+
+    # Validate routes.yaml
+    line=0
+    for route in routes.get("routes", []):
+        #print (f"[---Routes: {json.dumps({routes}).encode(utf-8) }--\n")
+        #print(f"",json.dumps(route, indent=4))
+        line+=1
+        if "source_id" not in route:
+            print(f"{Fore.RED}[!] Missing 'source_id' in routes.yaml: {line}{route}")
+        elif route["source_id"] not in source_ids:
+            print(f"[!] Invalid 'source_id' in routes.yaml: {line}:{route['source_id']}")
+
+        if "pipeline_id" not in route:
+            print(f"{Fore.RED}[!] Missing 'pipeline_id' in routes.yaml: {line}:{route}")
+        elif route["pipeline_id"] not in pipeline_ids:
+            print(f"{Fore.RED}[!] Invalid 'pipeline_id' in routes.yaml: {line}:{route['pipeline_id']}")
+
+        if "destination_ids" not in route:
+            print(f"{Fore.RED}[!] Missing 'destination_ids' in routes.yaml: {line}:{route}")
+        else:
+            for dest_id in route["destination_ids"]:
+                if dest_id not in destination_ids:
+                    print(f"{Fore.RED}[!] Invalid 'destination_id' in routes.yaml: {line}:{dest_id}")
+
+    #print("[*] Configuration validation (yaml files) completed...")
+
+#if __name__ == "__main__":
+#    validate_config()
+#End of validate_config()
 #--------------------------------------------------------------

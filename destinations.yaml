@@ -5,25 +5,25 @@ destinations:
     name: syslog_udp_destination
     ip: 192.168.1.100
     port: 514
-    protocol: syslog_udp
+    protocol: udp
 
   - destination_id: __Output_syslog_tcp
     name: syslog_tcp_destination
     ip: 192.168.1.101
     port: 601
-    protocol: syslog_tcp
+    protocol: tcp
 
-  - destination_id: __Output_raw_tcp
+  - destination_id: __Output_raw_tcp_1701
     name: _d_raw_tcp
     ip: 192.168.1.100
-    port: 1601
-    protocol: raw_tcp
+    port: 1701
+    protocol: tcp
 
   - destination_id: __Output_raw_udp
     name: _d_raw_udp
     ip: 192.168.1.100
     port: 1601
-    protocol: raw_udp
+    protocol: udp
 
   - destination_id: __Output_s3
     name: _d_s3
