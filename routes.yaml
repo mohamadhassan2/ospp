@@ -1,8 +1,13 @@
 routes:
+  - source_id: __Input_raw_udp_1614
+    pipeline_id: null_pipeline
+    destination_ids:
+      - null_destination
+      - __Output_raw_tcp_1701
+      - __Output_syslog_tcp
 
-  - source_id: __Input_raw_tcp
+  - source_id: __Input_raw_tcp_1614
     pipeline_id: __Pipeline_raw_tcp
     destination_ids:
       - __Output_raw_tcp_1701
 
-  

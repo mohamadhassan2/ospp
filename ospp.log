@@ -9964,3 +9964,363 @@
 2025-04-16 01:06:51,826 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
 2025-04-16 01:07:00,766 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
 2025-04-16 01:07:00,766 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:22:23,199 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:22:23,199 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:22:23,199 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:22:23,199 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:22:33,629 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:22:33,629 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:22:45,252 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:22:45,252 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:27:49,170 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:27:49,170 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:27:49,170 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:27:49,170 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:27:58,321 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:27:58,321 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:28:25,638 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:28:25,638 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:28:25,639 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:28:25,639 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:29:09,363 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:29:09,363 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:31:14,012 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:31:14,012 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:32:01,103 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:32:01,103 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:32:03,105 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:32:03,105 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:32:06,393 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:32:06,393 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:32:42,016 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:32:42,016 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:32:42,016 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:32:42,016 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:32:49,674 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:32:49,674 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 01:34:07,343 - ERROR - [94mError occurred in file: /Users/mhassan/ospp/proxy.py: 123 in function: handle_raw_tcp_client[0m
+2025-04-16 01:34:07,343 - ERROR - [94mError occurred in file: /Users/mhassan/ospp/proxy.py: 123 in function: handle_raw_tcp_client[0m
+2025-04-16 01:34:55,209 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:34:55,209 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:34:55,209 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:34:55,209 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:36:21,005 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:36:21,005 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:36:21,005 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:36:21,005 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:39:03,939 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:39:03,939 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:39:03,939 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:39:03,939 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:39:35,871 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:39:35,871 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:39:35,872 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:39:35,872 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:39:54,969 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:39:54,969 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:39:54,969 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:39:54,969 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:40:21,609 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:40:21,609 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:40:21,610 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:40:21,610 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:41:25,361 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:41:25,361 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:41:25,361 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:41:25,361 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:42:23,427 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:42:23,427 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:42:23,427 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:42:23,427 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:45:37,602 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:45:37,602 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:45:37,603 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:45:37,603 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:46:15,622 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:46:15,622 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:46:15,622 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:46:15,622 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:47:57,263 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:47:57,263 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:47:57,263 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:47:57,263 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:49:03,359 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:49:03,359 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:49:03,359 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:49:03,359 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:51:27,684 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:51:27,684 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:51:27,684 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:51:27,684 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:51:39,250 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:51:39,250 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:51:39,250 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:51:39,250 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:51:58,001 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:51:58,001 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:51:58,001 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:51:58,001 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:52:13,577 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:52:13,577 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:52:13,578 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:52:13,578 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:52:34,143 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:52:34,143 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:52:34,143 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:52:34,143 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:53:15,378 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:53:15,378 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:53:15,379 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:53:15,379 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:56:29,793 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:56:29,793 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 01:56:29,793 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 01:56:29,793 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 02:03:29,972 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 02:03:29,972 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 02:03:29,972 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 02:03:29,972 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 02:07:03,230 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 02:07:03,230 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 02:07:03,230 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 02:07:03,230 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 02:08:20,559 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 02:08:20,559 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 02:09:07,673 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 02:09:07,673 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 02:09:32,607 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 02:09:32,607 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 02:09:39,473 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 02:09:39,473 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 11:13:01,757 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 11:13:01,757 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 11:18:03,867 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 11:18:03,867 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 11:18:03,867 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 11:18:03,867 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 11:18:25,087 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 11:18:25,087 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 11:19:24,635 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 11:19:24,635 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 11:19:31,371 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 11:19:31,371 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 11:26:54,248 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 11:26:54,248 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 11:26:54,248 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 11:26:54,248 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 11:26:57,886 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 11:26:57,886 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 11:31:24,017 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 11:31:24,017 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 11:36:38,797 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 11:36:38,797 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 11:36:38,797 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 11:36:38,797 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 11:36:46,256 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 11:36:46,256 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 11:36:52,881 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 11:36:52,881 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 11:37:12,096 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 11:37:12,096 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 12:21:49,330 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 12:21:49,330 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 12:21:49,330 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 12:21:49,330 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 12:28:13,809 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 12:28:13,809 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 12:28:13,809 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 12:28:13,809 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 12:28:19,213 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 12:28:19,213 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 12:28:35,142 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 12:28:35,142 - INFO - [94m[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://10.0.0.195:5050[0m
+2025-04-16 12:28:35,142 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 12:28:35,142 - INFO - [94m[33mPress CTRL+C to quit[0m[0m
+2025-04-16 12:28:45,207 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m
+2025-04-16 12:28:45,207 - ERROR - [94mError occurred in file: /opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socket.py: 849 in function: create_connection[0m

@@ -8,7 +8,8 @@
 import re
 import json
 import os
-from flask import Flask, jsonify
+from flask import Flask, request, jsonify
+from utils import debug_print  # Import debug_print from utils.py
 
 app = Flask(__name__)
 
@@ -32,7 +33,7 @@ def regex_replace(data, step):
         try:
             data[field] = re.sub(pattern, replacement, value, flags=re.IGNORECASE)
         except re.error as e:
-            print(f"[!] Regex error: {e}")
+            debug_print(f"[!] Regex error: {e}", DLevel=0)
     return data
 
 def uppercase_field(data, step):
@@ -47,7 +48,7 @@ def parse_json_string_field(data, step):
         try:
             data[field] = json.loads(data[field])
         except Exception as e:
-            print(f"[!] Failed to parse JSON string in field '{field}': {e}")
+            debug_print(f"[!] Failed to parse JSON string in field '{field}': {e}", DLevel=0)
     return data
 
 #------------------------------------------------------
@@ -58,6 +59,7 @@ def api_config():
             config = json.load(f)
         return jsonify(config), 200
     except Exception as e:
+        debug_print(f"[!] Error loading config.yaml: {e}", DLevel=0)
         return jsonify({"error": str(e)}), 500
 # End of api_config()
 #------------------------------------------------------
@@ -67,8 +69,10 @@ def api_config():
 def api_cache():
     try:
         cache_files = os.listdir('cache')
+        debug_print(f"[+] Retrieved cache files: {cache_files}", DLevel=2)
         return jsonify({"cache_files": cache_files}), 200
     except Exception as e:
+        debug_print(f"[!] Error retrieving cache files: {e}", DLevel=0)
         return jsonify({"error": str(e)}), 500
 # End of api_cache()
 #------------------------------------------------------
@@ -76,10 +80,29 @@ def api_cache():
 #------------------------------------------------------
 @app.route('/api/health', methods=['GET'])
 def api_health():
+    debug_print("[+] Health check endpoint accessed.", DLevel=2)
     return jsonify({"status": "healthy"}), 200
 # End of api_health()
 #------------------------------------------------------
 
+@app.route('/process', methods=['POST'])
+def process_data():
+    """
+    API endpoint to process incoming data.
+    """
+    debug_print("[>] Received request at /process", DLevel=2)
+    try:
+        data = request.json
+        debug_print(f"[>] Processing data: {data}", DLevel=3)
+        # Process the data (e.g., apply a pipeline)
+        result = {"status": "success", "processed_data": data}
+        debug_print(f"[<] Successfully processed data: {result}", DLevel=2)
+        return jsonify(result), 200
+    except Exception as e:
+        debug_print(f"[!] Error processing data: {e}", DLevel=0)
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 if __name__ == '__main__':
+    debug_print("[*] Starting API server...", DLevel=1)
     app.run(host='0.0.0.0', port=5000)
 # End of api.py

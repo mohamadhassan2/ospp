@@ -48,3 +48,6 @@ pipelines:
         field: raw_data
         pattern: "\\bINFO\\b"
         replacement: "[INFO]"
+
+  - pipeline_id: null_pipeline
+    steps: []

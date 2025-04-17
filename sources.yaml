@@ -13,15 +13,15 @@ sources:
     listen_ip: 0.0.0.0
     listen_port: 1514
 
-  - source_id: __Input_raw_tcp
-    name: raw_tcp_server
+  - source_id: __Input_raw_tcp_1614
+    name: raw_tcp_server_1614
     enabled: true
     protocol: tcp
     listen_ip: 0.0.0.0
     listen_port: 1614
     
-  - source_id: __Input_raw_udp
-    name: raw_udp_server
+  - source_id: __Input_raw_udp_1614
+    name: raw_udp_server_1614
     enabled: true
     protocol: udp
     listen_ip: 0.0.0.0

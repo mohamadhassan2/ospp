@@ -14,13 +14,13 @@ destinations:
     protocol: tcp
 
   - destination_id: __Output_raw_tcp_1701
-    name: _d_raw_tcp
+    name: _d_raw_tcp_1701
     ip: 192.168.1.100
     port: 1701
     protocol: tcp
 
-  - destination_id: __Output_raw_udp
-    name: _d_raw_udp
+  - destination_id: __Output_raw_udp_1601
+    name: _d_raw_udp_1601
     ip: 192.168.1.100
     port: 1601
     protocol: udp
@@ -65,3 +65,6 @@ destinations:
     method: POST
     headers:
       Content-Type: application/json
+
+  - destination_id: null_destination
+    type: null
